@@ -99,13 +99,6 @@ export default function LocalAnesthesiaCalculator({ weightKg, isCardiac, isDarkM
     };
   }, [addedDrugs, weightKg, isCardiac]);
 
-  // Get the epi color class matching the gauge state
-  const getEpiColorClass = () => {
-    if (calculations.epiFraction > 100) return 'text-red-500';
-    if (calculations.epiFraction > 80) return 'text-amber-500';
-    return 'text-emerald-500';
-  };
-
   // Get color classes for drug cards
   const getDrugColors = (color) => {
     const colors = {
@@ -196,18 +189,13 @@ export default function LocalAnesthesiaCalculator({ weightKg, isCardiac, isDarkM
           sublabel="Fractional rule sum"
           isDarkMode={isDarkMode}
         />
-        <div>
-          <GasGauge
-            percentage={calculations.epiFraction}
-            label="Epinephrine Load"
-            sublabel={`Limit: ${calculations.epiLimit}mg (${isCardiac ? 'Cardiac' : 'Healthy'})`}
-            isDarkMode={isDarkMode}
-          />
-          {/* Total Epi value displayed under the gauge */}
-          <p className={`mt-1 text-center text-sm font-semibold ${getEpiColorClass()}`}>
-            {calculations.totalEpi.toFixed(3)}mg ({(calculations.totalEpi * 1000).toFixed(0)} mcg)
-          </p>
-        </div>
+        <GasGauge
+          percentage={calculations.epiFraction}
+          label="Epinephrine Load"
+          sublabel={`Limit: ${calculations.epiLimit}mg (${isCardiac ? 'Cardiac' : 'Healthy'})`}
+          detail={`${calculations.totalEpi.toFixed(3)}mg (${(calculations.totalEpi * 1000).toFixed(0)} mcg)`}
+          isDarkMode={isDarkMode}
+        />
       </div>
 
       {/* Drug Cards Grid */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, CheckCircle, AlertOctagon } from 'lucide-react';
 
-export default function GasGauge({ percentage: rawPercentage, label, sublabel, isDarkMode }) {
+export default function GasGauge({ percentage: rawPercentage, label, sublabel, detail, isDarkMode }) {
   // Guard against NaN/undefined
   const percentage = Number.isFinite(rawPercentage) ? rawPercentage : 0;
   // Clamp percentage for display but keep actual value for warnings
@@ -81,6 +81,13 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, i
           {isOverLimit ? 'OVER LIMIT!' : isWarning ? 'Approaching limit' : 'Within safe range'}
         </span>
       </div>
+
+      {/* Optional detail line */}
+      {detail && (
+        <div className={`mt-1 text-center text-sm font-semibold ${colors.text}`}>
+          {detail}
+        </div>
+      )}
     </div>
   );
 }
