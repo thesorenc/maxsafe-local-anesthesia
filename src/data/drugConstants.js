@@ -33,13 +33,13 @@ export const LOCAL_ANESTHETICS = [
     halfLife: '44 min'
   },
   {
-    id: 'bupivacaine-05-epi-100k',
+    id: 'bupivacaine-05-epi-200k',
     name: 'Bupivacaine 0.5%',
-    epiRatio: '1:100,000',
+    epiRatio: '1:200,000',
     concentration: 5, // mg/mL (0.5% = 5mg/mL)
     maxDosePerKg: 2,
     absoluteMax: 90,
-    epiConcentration: 0.01,
+    epiConcentration: 0.005, // mg/mL (1:200,000) - Marcaine/Vivacaine dental cartridges
     carpuleSize: 1.8, // mL - Marcaine uses 1.8mL carpules
     color: 'amber',
     category: 'amide',
@@ -67,10 +67,10 @@ export const LOCAL_ANESTHETICS = [
     name: 'Prilocaine 4%',
     epiRatio: 'Plain',
     concentration: 40, // mg/mL (4% = 40mg/mL)
-    maxDosePerKg: 6, // Updated per UpToDate
-    absoluteMax: 400, // Updated per UpToDate
+    maxDosePerKg: 6, // Conservative per UpToDate (FDA label: 8 mg/kg)
+    absoluteMax: 400, // Conservative per UpToDate (FDA label: 600 mg)
     epiConcentration: 0,
-    carpuleSize: 1.7, // mL
+    carpuleSize: 1.8, // mL - Citanest cartridges per FDA label
     color: 'cyan',
     category: 'amide',
     onset: '2-3 min',
