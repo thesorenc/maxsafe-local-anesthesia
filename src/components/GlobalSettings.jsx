@@ -1,78 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { Scale, Heart, AlertTriangle, User, Baby, Info, ShieldAlert, ChevronDown } from 'lucide-react';
 import { validateWeightForAge, ageToMonths } from '../data/drugConstants';
-
-// Custom age dropdown matching the app's design language
-const AGE_OPTIONS = [
-  { value: '0.5', label: '<1 yr' },
-  ...Array.from({ length: 17 }, (_, i) => ({ value: String(i + 1), label: `${i + 1} yr` })),
-  { value: 'adult', label: 'Adult' },
-];
-
-function AgeDropdown({ value, onChange, isDarkMode }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const selected = AGE_OPTIONS.find(o => o.value === value) || AGE_OPTIONS[AGE_OPTIONS.length - 1];
-  const listRef = useRef(null);
-
-  // Scroll selected item into view when opening
-  useEffect(() => {
-    if (isOpen && listRef.current) {
-      const active = listRef.current.querySelector('[data-active="true"]');
-      if (active) active.scrollIntoView({ block: 'center' });
-    }
-  }, [isOpen]);
-
-  return (
-    <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className={`w-full px-4 py-3 rounded-xl text-lg text-left flex items-center justify-between transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
-          isDarkMode
-            ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
-            : 'bg-slate-100 border border-slate-300 text-slate-900'
-        }`}
-      >
-        <span>{selected.label}</span>
-        <ChevronDown className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
-      </button>
-
-      {/* Full-screen overlay — renders in a portal-like fixed layer, above everything */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/40" onClick={() => setIsOpen(false)} />
-
-          {/* Panel */}
-          <div className={`relative w-full max-w-sm mx-4 mb-4 sm:mb-0 rounded-2xl border shadow-2xl overflow-hidden ${
-            isDarkMode ? 'bg-or-dark-800 border-slate-700' : 'bg-white border-slate-200'
-          }`}>
-            <div className={`px-4 py-3 border-b font-medium font-display ${
-              isDarkMode ? 'border-slate-700 text-slate-200' : 'border-slate-200 text-slate-700'
-            }`}>
-              Select Patient Age
-            </div>
-            <div ref={listRef} className="max-h-72 overflow-y-auto py-1">
-              {AGE_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  data-active={opt.value === value ? 'true' : undefined}
-                  onClick={() => { onChange(opt.value); setIsOpen(false); }}
-                  className={`w-full px-4 py-3 text-left text-base transition-colors ${
-                    opt.value === value
-                      ? isDarkMode ? 'bg-blue-600/20 text-blue-400 font-semibold' : 'bg-blue-50 text-blue-600 font-semibold'
-                      : isDarkMode ? 'text-slate-300 hover:bg-or-dark-700' : 'text-slate-700 hover:bg-slate-100'
-                  } ${opt.value === 'adult' ? `border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}` : ''}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
 
 export default function GlobalSettings({
   weight,
@@ -230,18 +158,31 @@ export default function GlobalSettings({
             <Baby className="w-4 h-4" />
             Patient Age
           </label>
-          <AgeDropdown
-            value={isPediatric ? String(ageYears) : 'adult'}
-            onChange={(val) => {
-              if (val === 'adult') {
-                setPatientType('adult');
-              } else {
-                setPatientType('pediatric');
-                setAgeYears(parseFloat(val));
-              }
-            }}
-            isDarkMode={isDarkMode}
-          />
+          <div className="relative">
+            <select
+              value={isPediatric ? String(ageYears) : 'adult'}
+              onChange={(e) => {
+                if (e.target.value === 'adult') {
+                  setPatientType('adult');
+                } else {
+                  setPatientType('pediatric');
+                  setAgeYears(parseFloat(e.target.value));
+                }
+              }}
+              className={`w-full px-4 py-3 pr-10 rounded-xl text-lg appearance-none transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                isDarkMode
+                  ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
+                  : 'bg-slate-100 border border-slate-300 text-slate-900'
+              }`}
+            >
+              <option value="0.5">&lt;1 yr</option>
+              {Array.from({ length: 17 }, (_, i) => (
+                <option key={i + 1} value={String(i + 1)}>{i + 1} yr</option>
+              ))}
+              <option value="adult">Adult</option>
+            </select>
+            <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+          </div>
           {isPediatric && (
             <div className="flex gap-2 items-center">
               <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>MRD:</span>
