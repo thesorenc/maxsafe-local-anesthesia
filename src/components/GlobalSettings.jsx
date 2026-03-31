@@ -4,46 +4,28 @@ import { validateWeightForAge, ageToMonths } from '../data/drugConstants';
 
 // Custom age dropdown matching the app's design language
 const AGE_OPTIONS = [
-  { value: '0.5', label: '6 mo' },
-  { value: '0.75', label: '9 mo' },
+  { value: '0.5', label: '<1 yr' },
   ...Array.from({ length: 17 }, (_, i) => ({ value: String(i + 1), label: `${i + 1} yr` })),
   { value: 'adult', label: 'Adult' },
 ];
 
 function AgeDropdown({ value, onChange, isDarkMode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const btnRef = useRef(null);
+  const selected = AGE_OPTIONS.find(o => o.value === value) || AGE_OPTIONS[AGE_OPTIONS.length - 1];
   const listRef = useRef(null);
-  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
 
-  // Close on outside click
+  // Scroll selected item into view when opening
   useEffect(() => {
-    const handleClick = (e) => {
-      if (btnRef.current && !btnRef.current.contains(e.target) &&
-          listRef.current && !listRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    if (isOpen && listRef.current) {
+      const active = listRef.current.querySelector('[data-active="true"]');
+      if (active) active.scrollIntoView({ block: 'center' });
+    }
   }, [isOpen]);
 
-  // Position the fixed dropdown below the button
-  const handleOpen = () => {
-    if (btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
-    }
-    setIsOpen(!isOpen);
-  };
-
-  const selected = AGE_OPTIONS.find(o => o.value === value) || AGE_OPTIONS[AGE_OPTIONS.length - 1];
-
   return (
-    <div>
+    <>
       <button
-        ref={btnRef}
-        onClick={handleOpen}
+        onClick={() => setIsOpen(true)}
         className={`w-full px-4 py-3 rounded-xl text-lg text-left flex items-center justify-between transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
           isDarkMode
             ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
@@ -51,35 +33,44 @@ function AgeDropdown({ value, onChange, isDarkMode }) {
         }`}
       >
         <span>{selected.label}</span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''} ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+        <ChevronDown className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
       </button>
 
+      {/* Full-screen overlay — renders in a portal-like fixed layer, above everything */}
       {isOpen && (
-        <div
-          ref={listRef}
-          className={`fixed z-[100] rounded-xl border shadow-xl overflow-hidden ${
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsOpen(false)} />
+
+          {/* Panel */}
+          <div className={`relative w-full max-w-sm mx-4 mb-4 sm:mb-0 rounded-2xl border shadow-2xl overflow-hidden ${
             isDarkMode ? 'bg-or-dark-800 border-slate-700' : 'bg-white border-slate-200'
-          }`}
-          style={{ top: pos.top, left: pos.left, width: pos.width }}
-        >
-          <div className="max-h-60 overflow-y-auto py-1">
-            {AGE_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => { onChange(opt.value); setIsOpen(false); }}
-                className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
-                  opt.value === value
-                    ? isDarkMode ? 'bg-blue-600/20 text-blue-400 font-semibold' : 'bg-blue-50 text-blue-600 font-semibold'
-                    : isDarkMode ? 'text-slate-300 hover:bg-or-dark-700' : 'text-slate-700 hover:bg-slate-100'
-                } ${opt.value === 'adult' ? `border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}` : ''}`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          }`}>
+            <div className={`px-4 py-3 border-b font-medium font-display ${
+              isDarkMode ? 'border-slate-700 text-slate-200' : 'border-slate-200 text-slate-700'
+            }`}>
+              Select Patient Age
+            </div>
+            <div ref={listRef} className="max-h-72 overflow-y-auto py-1">
+              {AGE_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  data-active={opt.value === value ? 'true' : undefined}
+                  onClick={() => { onChange(opt.value); setIsOpen(false); }}
+                  className={`w-full px-4 py-3 text-left text-base transition-colors ${
+                    opt.value === value
+                      ? isDarkMode ? 'bg-blue-600/20 text-blue-400 font-semibold' : 'bg-blue-50 text-blue-600 font-semibold'
+                      : isDarkMode ? 'text-slate-300 hover:bg-or-dark-700' : 'text-slate-700 hover:bg-slate-100'
+                  } ${opt.value === 'adult' ? `border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}` : ''}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -162,7 +153,7 @@ export default function GlobalSettings({
   );
 
   return (
-    <div className={`rounded-2xl p-4 mb-4 border transition-colors card-shadow relative z-20 ${
+    <div className={`rounded-2xl p-4 mb-4 border transition-colors card-shadow ${
       isDarkMode
         ? 'bg-or-dark-800/80 border-slate-700/50'
         : 'bg-white border-slate-200'
