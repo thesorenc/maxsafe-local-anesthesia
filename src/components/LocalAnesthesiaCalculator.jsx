@@ -191,8 +191,8 @@ export default function LocalAnesthesiaCalculator({
     return (
       <div key={`${drug.id}-${epiRatio}`} className="flex items-center gap-2">
         {/* Concentration label */}
-        <div className={`w-20 flex-shrink-0 text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-          {isPlain ? 'Plain' : epiRatio}
+        <div className={`w-24 flex-shrink-0 text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          {isPlain ? 'Plain' : `Epi ${epiRatio}`}
         </div>
 
         {/* Counter */}
@@ -290,22 +290,60 @@ export default function LocalAnesthesiaCalculator({
         />
       </div>
 
-      {/* Summary Strip */}
-      {addedDrugs.length > 0 && (
-        <div className={`rounded-xl px-4 py-2.5 text-sm font-medium text-center transition-colors ${
-          summaryColor === 'red'
-            ? isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-red-50 text-red-600 border border-red-200'
-            : summaryColor === 'amber'
-            ? isDarkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'bg-amber-50 text-amber-600 border border-amber-200'
-            : isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-        }`}>
+      {/* Summary Strip — always visible to prevent layout shift */}
+      <div className={`rounded-xl px-4 py-2.5 text-sm font-medium text-center transition-colors ${
+        summaryColor === 'red'
+          ? isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-red-50 text-red-600 border border-red-200'
+          : summaryColor === 'amber'
+          ? isDarkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'bg-amber-50 text-amber-600 border border-amber-200'
+          : isDarkMode ? 'bg-or-dark-800/80 text-slate-400 border border-slate-700/50' : 'bg-white text-slate-400 border border-slate-200'
+      }`}>
+        <div>
           <span className="font-mono">{calculations.totalFraction.toFixed(1)}%</span> toxicity
           {' · '}
           <span className="font-mono">{(calculations.totalEpi * 1000).toFixed(0)}</span> mcg epi (<span className="font-mono">{calculations.epiFraction.toFixed(0)}%</span>)
-          {' · '}
-          {calculations.activeDrugCount} drug{calculations.activeDrugCount !== 1 ? 's' : ''}
+          {addedDrugs.length > 0 && <>
+            {' · '}
+            {calculations.activeDrugCount} drug{calculations.activeDrugCount !== 1 ? 's' : ''}
+          </>}
         </div>
-      )}
+
+        {/* Clinical warnings — integrated into summary area */}
+        {(isCardiac || isPregnant || hepaticStatus !== 'none' || renalImpairment) && (
+          <div className="mt-2 space-y-1 text-xs font-normal">
+            {isCardiac && (
+              <div className={`flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                <AlertTriangle className="w-3 h-3" />
+                Cardiac — Epi limit: 0.04mg
+              </div>
+            )}
+            {isPregnant && (
+              <div className={`flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                <AlertTriangle className="w-3 h-3" />
+                Pregnant — Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.
+              </div>
+            )}
+            {hepaticStatus === 'moderate-severe' && (
+              <div className={`flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                <AlertTriangle className="w-3 h-3" />
+                Hepatic impairment — Reduce dose. Prefer articaine.
+              </div>
+            )}
+            {hepaticStatus === 'mild' && (
+              <div className={`flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                <Info className="w-3 h-3" />
+                Mild hepatic impairment — Use minimum effective dose.
+              </div>
+            )}
+            {renalImpairment && (
+              <div className={`flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                <Info className="w-3 h-3" />
+                Renal impairment — Verify electrolytes. Prefer articaine.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Verification Banner */}
       <VerificationBanner

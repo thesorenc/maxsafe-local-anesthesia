@@ -149,52 +149,6 @@ function App() {
           isDarkMode={isDarkMode}
         />
 
-        {/* Status Warning Banners — inline between settings and calculator */}
-        {(isCardiac || isPregnant || hepaticStatus !== 'none' || renalImpairment) && (
-          <div role="alert" className="space-y-2 mt-4">
-            {isCardiac && (
-              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'bg-amber-600/20 text-amber-400' : 'bg-amber-100 text-amber-700'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-                <span className="font-medium">Cardiac/Compromised Patient — Epi limit: 0.04mg</span>
-              </div>
-            )}
-            {isPregnant && (
-              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-                <span className="font-medium">Pregnant Patient — Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.</span>
-              </div>
-            )}
-            {hepaticStatus === 'moderate-severe' && (
-              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'bg-orange-600/20 text-orange-400' : 'bg-orange-100 text-orange-700'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-                <span className="font-medium">Hepatic Impairment — Reduce dose. Prefer articaine (extraplasmatic metabolism).</span>
-              </div>
-            )}
-            {hepaticStatus === 'mild' && (
-              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'bg-yellow-600/15 text-yellow-400' : 'bg-yellow-50 text-yellow-700'
-              }`}>
-                <Info className="w-4 h-4" />
-                <span className="font-medium">Mild Hepatic Impairment — Use minimum effective dose. Consider articaine.</span>
-              </div>
-            )}
-            {renalImpairment && (
-              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'bg-blue-600/15 text-blue-400' : 'bg-blue-50 text-blue-700'
-              }`}>
-                <Info className="w-4 h-4" />
-                <span className="font-medium">Renal Impairment — Verify electrolytes. Prefer articaine. Avoid repeated doses.</span>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Calculator */}
         <div className="mt-4">
           <LocalAnesthesiaCalculator
