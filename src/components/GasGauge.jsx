@@ -162,20 +162,29 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
             }`}>
               {statusText}
             </span>
+            {sublabel && (
+              <span className={`text-[8px] mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                {sublabel}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Only sublabel and detail below the arc — these fit in the bottom gap */}
-        <div className="text-center -mt-4">
-          <p className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-            {sublabel}
-          </p>
-          {detail && (
-            <p className={`text-[10px] font-mono font-medium ${color.text}`}>
-              {detail}
-            </p>
-          )}
-        </div>
+        {/* Only compact detail below the arc — fits in the bottom gap */}
+        {(sublabel || detail) && (
+          <div className="text-center -mt-5">
+            {detail && (
+              <p className={`text-[10px] font-mono font-medium ${color.text}`}>
+                {detail}
+              </p>
+            )}
+            {!detail && sublabel && (
+              <p className={`text-[9px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                {sublabel}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
