@@ -10,23 +10,38 @@ const AGE_OPTIONS = [
 
 function AgeDropdown({ value, onChange, isDarkMode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef(null);
+  const btnRef = useRef(null);
+  const listRef = useRef(null);
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
 
   // Close on outside click
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+      if (btnRef.current && !btnRef.current.contains(e.target) &&
+          listRef.current && !listRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
     };
     if (isOpen) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isOpen]);
 
+  // Position the fixed dropdown below the button
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+    setIsOpen(!isOpen);
+  };
+
   const selected = AGE_OPTIONS.find(o => o.value === value) || AGE_OPTIONS[AGE_OPTIONS.length - 1];
 
   return (
-    <div ref={ref} className="relative">
+    <div>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={btnRef}
+        onClick={handleOpen}
         className={`w-full px-4 py-3 rounded-xl text-lg text-left flex items-center justify-between transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
           isDarkMode
             ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
@@ -38,9 +53,13 @@ function AgeDropdown({ value, onChange, isDarkMode }) {
       </button>
 
       {isOpen && (
-        <div className={`absolute z-50 mt-1 w-full rounded-xl border shadow-lg overflow-hidden ${
-          isDarkMode ? 'bg-or-dark-800 border-slate-700' : 'bg-white border-slate-200'
-        }`}>
+        <div
+          ref={listRef}
+          className={`fixed z-[100] rounded-xl border shadow-xl overflow-hidden ${
+            isDarkMode ? 'bg-or-dark-800 border-slate-700' : 'bg-white border-slate-200'
+          }`}
+          style={{ top: pos.top, left: pos.left, width: pos.width }}
+        >
           <div className="max-h-60 overflow-y-auto py-1">
             {AGE_OPTIONS.map(opt => (
               <button

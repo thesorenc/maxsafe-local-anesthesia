@@ -281,8 +281,9 @@ export default function LocalAnesthesiaCalculator({
         />
       </div>
 
-      {/* Summary Strip — sticky so safety numbers stay visible while scrolling drugs */}
-      <div className={`sticky top-[52px] z-30 rounded-xl px-4 py-2.5 text-sm font-medium text-center transition-colors ${
+      {/* Summary Strip — sticky below header */}
+      <div className={`sticky top-[48px] z-30 -mx-4 px-4 pt-2 pb-2 ${isDarkMode ? 'bg-or-dark-900/95 backdrop-blur-sm' : 'bg-[#f8f7f5]/95 backdrop-blur-sm'}`}>
+      <div className={`rounded-xl px-4 py-2.5 text-sm font-medium text-center transition-colors ${
         summaryColor === 'red'
           ? isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-red-50 text-red-600 border border-red-200'
           : summaryColor === 'amber'
@@ -334,6 +335,7 @@ export default function LocalAnesthesiaCalculator({
             )}
           </div>
         )}
+      </div>
       </div>
 
       {/* Verification Banner */}
