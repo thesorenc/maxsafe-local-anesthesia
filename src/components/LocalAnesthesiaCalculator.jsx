@@ -195,8 +195,8 @@ export default function LocalAnesthesiaCalculator({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Syringe className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-          <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-            Local Anesthesia Calculator
+          <h2 className={`text-lg font-semibold font-display ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+            Drugs
           </h2>
         </div>
         <button
@@ -262,9 +262,9 @@ export default function LocalAnesthesiaCalculator({
             ? isDarkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'bg-amber-50 text-amber-600 border border-amber-200'
             : isDarkMode ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
         }`}>
-          {calculations.totalFraction.toFixed(1)}% toxicity
+          <span className="font-mono">{calculations.totalFraction.toFixed(1)}%</span> toxicity
           {' • '}
-          {(calculations.totalEpi * 1000).toFixed(0)} mcg epi ({calculations.epiFraction.toFixed(0)}%)
+          <span className="font-mono">{(calculations.totalEpi * 1000).toFixed(0)}</span> mcg epi (<span className="font-mono">{calculations.epiFraction.toFixed(0)}%</span>)
           {' • '}
           {calculations.activeDrugCount} drug{calculations.activeDrugCount !== 1 ? 's' : ''} active
         </div>
@@ -314,9 +314,10 @@ export default function LocalAnesthesiaCalculator({
           return (
             <div
               key={drug.id}
-              className={`rounded-2xl p-4 border transition-all ${colors.bg} ${colors.border} ${
-                isDisabledByPregnancy ? 'opacity-50 pointer-events-none relative' : ''
-              }`}
+              className={`rounded-2xl p-4 border transition-all relative ${colors.bg} ${colors.border} ${
+                isDisabledByPregnancy ? 'opacity-50 pointer-events-none' : ''
+              } ${!epiDisplay.isPlain ? 'border-l-4' : ''}`}
+              style={!epiDisplay.isPlain ? { borderLeftColor: isDarkMode ? 'rgba(245,158,11,0.5)' : 'rgba(245,158,11,0.7)' } : {}}
             >
               {isDisabledByPregnancy && (
                 <div className={`absolute inset-0 rounded-2xl flex items-center justify-center z-10 pointer-events-none ${
@@ -362,18 +363,20 @@ export default function LocalAnesthesiaCalculator({
                       )}
                       {' • '}{drug.carpuleSize}mL carpules
                     </p>
-                    <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {drug.onset && <span>Onset: {drug.onset}</span>}
-                      {drug.onset && drug.duration && <span> • </span>}
-                      {drug.duration && <span>Duration: {drug.duration}</span>}
-                      {(drug.onset || drug.duration) && drug.halfLife && <span> • </span>}
-                      {drug.halfLife && <span>t½: {drug.halfLife}</span>}
-                    </p>
+                    {count > 0 && (
+                      <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {drug.onset && <span>Onset: {drug.onset}</span>}
+                        {drug.onset && drug.duration && <span> • </span>}
+                        {drug.duration && <span>Duration: {drug.duration}</span>}
+                        {(drug.onset || drug.duration) && drug.halfLife && <span> • </span>}
+                        {drug.halfLife && <span>t½: {drug.halfLife}</span>}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Percentage indicator */}
-                <span className={`text-lg font-bold transition-opacity duration-200 flex-shrink-0 ${
+                <span className={`text-lg font-bold font-mono transition-opacity duration-200 flex-shrink-0 ${
                   count > 0 && weightKg > 0 ? 'opacity-100' : 'opacity-30'
                 } ${
                   count > 0 && weightKg > 0
@@ -422,7 +425,7 @@ export default function LocalAnesthesiaCalculator({
                   onClick={() => addCarpule(drug.id, -1)}
                   disabled={count === 0 || !weightKg}
                   aria-label={`Remove one ${drug.name} carpule`}
-                  className={`w-12 h-12 rounded-xl text-xl font-bold flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                  className={`w-12 h-12 rounded-xl text-xl font-bold flex items-center justify-center transition-all btn-press focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                     count === 0 || !weightKg
                       ? isDarkMode
                         ? 'bg-or-dark-700/50 text-slate-600 cursor-not-allowed'
@@ -436,7 +439,7 @@ export default function LocalAnesthesiaCalculator({
                 </button>
 
                 <div className="flex-1 text-center">
-                  <div className={`text-3xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                  <div className={`text-3xl font-bold font-mono ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
                     {count}
                   </div>
                   <div className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -453,7 +456,7 @@ export default function LocalAnesthesiaCalculator({
                   onClick={() => addCarpule(drug.id, 1)}
                   disabled={!weightKg}
                   aria-label={`Add one ${drug.name} carpule`}
-                  className={`w-12 h-12 rounded-xl text-xl font-bold flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+                  className={`w-12 h-12 rounded-xl text-xl font-bold flex items-center justify-center transition-all btn-press focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                     !weightKg
                       ? isDarkMode
                         ? 'bg-or-dark-700/50 text-slate-600 cursor-not-allowed'

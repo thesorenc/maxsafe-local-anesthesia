@@ -89,7 +89,7 @@ export default function GlobalSettings({
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <User className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-        <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+        <h2 className={`text-lg font-semibold font-display ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
           Patient Settings
         </h2>
       </div>

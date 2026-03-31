@@ -7,6 +7,10 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        display: ['Outfit', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+      },
       colors: {
         'or-dark': {
           900: '#0a0a0f',
@@ -15,7 +19,7 @@ export default {
           600: '#242430',
           500: '#2e2e3d',
         }
-      }
+      },
     },
   },
   plugins: [],

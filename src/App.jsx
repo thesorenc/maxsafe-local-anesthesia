@@ -75,18 +75,18 @@ function App() {
           ? 'bg-or-dark-900/95 border-slate-800'
           : 'bg-white/95 border-slate-200'
       }`}>
-        <div className="max-w-2xl mx-auto px-4 py-3">
+        <div className="max-w-2xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-xl">
-                <Shield className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-blue-600 rounded-lg">
+                <Shield className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                <h1 className={`text-lg font-bold font-display tracking-tight ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
                   MaxSafe
                 </h1>
-                <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                  Local Anesthesia Calculator
+                <p className={`text-[10px] font-medium tracking-wide uppercase ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  LA Calculator
                 </p>
               </div>
             </div>
