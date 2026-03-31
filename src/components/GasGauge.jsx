@@ -2,8 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 
 /**
  * Radial arc gauge — the visual centerpiece of MaxSafe.
- * 270-degree SVG arc with animated fill, centered percentage readout,
- * and color-coded glow at danger thresholds.
+ * 270-degree SVG arc with animated fill. All text (label, percentage,
+ * status) rendered inside the arc's open center to avoid overlap.
  */
 export default function GasGauge({ percentage: rawPercentage, label, sublabel, detail, isDarkMode }) {
   const percentage = Number.isFinite(rawPercentage) ? rawPercentage : 0;
@@ -37,13 +37,10 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
   }, [percentage]);
 
   // SVG arc parameters — 270-degree arc
-  const size = 132;
+  const size = 140;
   const strokeWidth = 9;
   const center = size / 2;
   const radius = (size - strokeWidth * 2) / 2;
-  // Arc bottom endpoints are at y ≈ center + radius*sin(45°) + stroke/2 ≈ 111
-  // Give 6px padding below arc endpoints for clean separation from labels
-  const svgHeight = Math.ceil(center + radius * Math.sin(Math.PI / 4) + strokeWidth / 2 + 6);
 
   // 270 degrees, starting from bottom-left
   const startAngle = 135;
@@ -84,7 +81,7 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
   const statusText = isOverLimit ? 'OVER LIMIT' : isWarning ? 'CAUTION' : 'SAFE';
 
   return (
-    <div className={`rounded-2xl px-3 pt-3 pb-3 border transition-colors relative overflow-hidden ${
+    <div className={`rounded-2xl px-3 pt-3 pb-2 border transition-colors relative overflow-hidden ${
       isOverLimit
         ? isDarkMode ? 'bg-red-500/5 border-red-500/30' : 'bg-red-50 border-red-200'
         : isWarning
@@ -96,19 +93,19 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
         <div
           className="absolute inset-0 pointer-events-none gauge-glow"
           style={{
-            background: `radial-gradient(circle at 50% 35%, ${color.glow}, transparent 70%)`,
+            background: `radial-gradient(circle at 50% 40%, ${color.glow}, transparent 70%)`,
             opacity: isOverLimit ? 0.6 : 0.3,
           }}
         />
       )}
 
       <div className="relative flex flex-col items-center">
-        {/* SVG Gauge — with centered readout inside */}
-        <div className="relative" style={{ width: size, height: svgHeight }}>
+        {/* Gauge container — SVG + overlaid text, all inside the arc */}
+        <div className="relative" style={{ width: size, height: size }}>
           <svg
             width={size}
-            height={svgHeight}
-            viewBox={`0 0 ${size} ${svgHeight}`}
+            height={size}
+            viewBox={`0 0 ${size} ${size}`}
             className="overflow-visible"
           >
             {/* Track */}
@@ -149,11 +146,16 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
             />
           </svg>
 
-          {/* Centered readout — positioned in the arc's open center area */}
-          <div className="absolute inset-0 flex flex-col items-center" style={{ paddingTop: '22%' }}>
-            <span className={`font-mono text-2xl font-bold tracking-tight leading-none ${color.text}`}>
+          {/* All text inside the arc — label on top, number in center, status below */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingTop: '8%', paddingBottom: '16%' }}>
+            <p className={`text-[10px] font-semibold font-display tracking-wide uppercase ${
+              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}>
+              {label}
+            </p>
+            <span className={`font-mono text-3xl font-bold tracking-tight leading-none mt-1 ${color.text}`}>
               {displayNum.toFixed(1)}
-              <span className="text-sm">%</span>
+              <span className="text-base">%</span>
             </span>
             <span className={`text-[9px] font-bold tracking-widest uppercase mt-1 ${
               isOverLimit ? 'text-red-400' : isWarning ? 'text-amber-400' : isDarkMode ? 'text-emerald-400/60' : 'text-emerald-600/60'
@@ -163,16 +165,13 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
           </div>
         </div>
 
-        {/* Labels — below the gauge with clear spacing */}
-        <div className="text-center mt-1.5">
-          <p className={`text-xs font-semibold font-display ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-            {label}
-          </p>
-          <p className={`text-[10px] leading-tight ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+        {/* Only sublabel and detail below the arc — these fit in the bottom gap */}
+        <div className="text-center -mt-4">
+          <p className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
             {sublabel}
           </p>
           {detail && (
-            <p className={`text-[10px] font-mono font-medium mt-0.5 ${color.text}`}>
+            <p className={`text-[10px] font-mono font-medium ${color.text}`}>
               {detail}
             </p>
           )}
