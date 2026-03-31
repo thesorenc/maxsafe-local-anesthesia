@@ -22,6 +22,7 @@ const TIER_ORDER = ['infant', 'toddler', 'young-child', 'school-age', 'adolescen
 
 // Available epinephrine concentration ratios
 export const EPI_RATIOS = {
+  '1:50,000':  0.02,
   '1:80,000':  0.0125,
   '1:100,000': 0.01,
   '1:200,000': 0.005,
@@ -49,7 +50,7 @@ export const LOCAL_ANESTHETICS = [
       pedFDA:  { maxDosePerKg: 7.0, absoluteMax: 500 },
     },
     // Available epi concentrations for this formulation
-    availableEpiRatios: ['1:80,000', '1:100,000', '1:200,000'],
+    availableEpiRatios: ['1:50,000', '1:80,000', '1:100,000', '1:200,000'],
     defaultEpiRatio: '1:100,000',
     // Pediatric restrictions and warnings
     pediatric: {

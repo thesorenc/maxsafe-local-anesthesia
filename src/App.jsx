@@ -146,6 +146,52 @@ function App() {
           isDarkMode={isDarkMode}
         />
 
+        {/* Status Warning Banners — inline between settings and calculator */}
+        {(isCardiac || isPregnant || hepaticStatus !== 'none' || renalImpairment) && (
+          <div role="alert" className="space-y-2 mt-4">
+            {isCardiac && (
+              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
+                isDarkMode ? 'bg-amber-600/20 text-amber-400' : 'bg-amber-100 text-amber-700'
+              }`}>
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Cardiac/Compromised Patient — Epi limit: 0.04mg</span>
+              </div>
+            )}
+            {isPregnant && (
+              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
+                isDarkMode ? 'bg-purple-600/20 text-purple-400' : 'bg-purple-100 text-purple-700'
+              }`}>
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Pregnant Patient — Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.</span>
+              </div>
+            )}
+            {hepaticStatus === 'moderate-severe' && (
+              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
+                isDarkMode ? 'bg-orange-600/20 text-orange-400' : 'bg-orange-100 text-orange-700'
+              }`}>
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-medium">Hepatic Impairment — Reduce dose. Prefer articaine (extraplasmatic metabolism).</span>
+              </div>
+            )}
+            {hepaticStatus === 'mild' && (
+              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
+                isDarkMode ? 'bg-yellow-600/15 text-yellow-400' : 'bg-yellow-50 text-yellow-700'
+              }`}>
+                <Info className="w-4 h-4" />
+                <span className="font-medium">Mild Hepatic Impairment — Use minimum effective dose. Consider articaine.</span>
+              </div>
+            )}
+            {renalImpairment && (
+              <div className={`py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm ${
+                isDarkMode ? 'bg-blue-600/15 text-blue-400' : 'bg-blue-50 text-blue-700'
+              }`}>
+                <Info className="w-4 h-4" />
+                <span className="font-medium">Renal Impairment — Verify electrolytes. Prefer articaine. Avoid repeated doses.</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Calculator */}
         <div className="mt-4">
           <LocalAnesthesiaCalculator
@@ -178,73 +224,6 @@ function App() {
         </div>
       </main>
 
-      {/* Status Warning Banners */}
-      {(isCardiac || isPregnant || hepaticStatus !== 'none' || renalImpairment) && (
-        <div role="alert" className={`fixed top-[72px] left-0 right-0 z-40 ${
-          isDarkMode ? 'border-b border-slate-700' : 'border-b border-slate-300'
-        }`}>
-          {isCardiac && (
-            <div className={`py-2 px-4 ${
-              isDarkMode ? 'bg-amber-600/20 border-b border-amber-500/30' : 'bg-amber-100 border-b border-amber-300'
-            }`}>
-              <div className={`max-w-2xl mx-auto flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'text-amber-400' : 'text-amber-700'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-                <span className="font-medium">Cardiac/Compromised Patient — Epi limit: 0.04mg</span>
-              </div>
-            </div>
-          )}
-          {isPregnant && (
-            <div className={`py-2 px-4 ${
-              isDarkMode ? 'bg-purple-600/20 border-b border-purple-500/30' : 'bg-purple-100 border-b border-purple-300'
-            }`}>
-              <div className={`max-w-2xl mx-auto flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'text-purple-400' : 'text-purple-700'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-                <span className="font-medium">Pregnant Patient — Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.</span>
-              </div>
-            </div>
-          )}
-          {hepaticStatus === 'moderate-severe' && (
-            <div className={`py-2 px-4 ${
-              isDarkMode ? 'bg-orange-600/20 border-b border-orange-500/30' : 'bg-orange-100 border-b border-orange-300'
-            }`}>
-              <div className={`max-w-2xl mx-auto flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'text-orange-400' : 'text-orange-700'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-                <span className="font-medium">Hepatic Impairment — Reduce dose. Prefer articaine (extraplasmatic metabolism).</span>
-              </div>
-            </div>
-          )}
-          {hepaticStatus === 'mild' && (
-            <div className={`py-2 px-4 ${
-              isDarkMode ? 'bg-yellow-600/15 border-b border-yellow-500/20' : 'bg-yellow-50 border-b border-yellow-200'
-            }`}>
-              <div className={`max-w-2xl mx-auto flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'text-yellow-400' : 'text-yellow-700'
-              }`}>
-                <Info className="w-4 h-4" />
-                <span className="font-medium">Mild Hepatic Impairment — Use minimum effective dose. Consider articaine.</span>
-              </div>
-            </div>
-          )}
-          {renalImpairment && (
-            <div className={`py-2 px-4 ${
-              isDarkMode ? 'bg-blue-600/15 border-b border-blue-500/20' : 'bg-blue-50 border-b border-blue-200'
-            }`}>
-              <div className={`max-w-2xl mx-auto flex items-center justify-center gap-2 text-sm ${
-                isDarkMode ? 'text-blue-400' : 'text-blue-700'
-              }`}>
-                <Info className="w-4 h-4" />
-                <span className="font-medium">Renal Impairment — Verify electrolytes. Prefer articaine. Avoid repeated doses.</span>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -309,12 +309,26 @@ export default function LocalAnesthesiaCalculator({
           const percentUsed = weightKg > 0 && count > 0 ? (mgDelivered / maxDose) * 100 : 0;
           const epiDisplay = getEpiDisplay(drug);
           const warnings = isPediatric ? getDrugWarnings(drug, ageTier) : [];
+          const isDisabledByPregnancy = isPregnant && drug.id === 'prilocaine-4-plain';
 
           return (
             <div
               key={drug.id}
-              className={`rounded-2xl p-4 border transition-all ${colors.bg} ${colors.border}`}
+              className={`rounded-2xl p-4 border transition-all ${colors.bg} ${colors.border} ${
+                isDisabledByPregnancy ? 'opacity-50 pointer-events-none relative' : ''
+              }`}
             >
+              {isDisabledByPregnancy && (
+                <div className={`absolute inset-0 rounded-2xl flex items-center justify-center z-10 pointer-events-none ${
+                  isDarkMode ? 'bg-or-dark-900/60' : 'bg-white/60'
+                }`}>
+                  <span className={`px-3 py-1.5 rounded-lg text-sm font-bold ${
+                    isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'
+                  }`}>
+                    Not recommended in pregnancy (methemoglobinemia risk)
+                  </span>
+                </div>
+              )}
               {/* Drug Header */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 min-w-0">

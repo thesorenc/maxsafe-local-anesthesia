@@ -85,26 +85,12 @@ export default function GlobalSettings({
         ? 'bg-or-dark-800/80 border-slate-700/50'
         : 'bg-white border-slate-200'
     }`}>
-      {/* Header with badges */}
+      {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <User className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
         <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
           Patient Settings
         </h2>
-        {isPediatric && (
-          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-teal-500 text-white">
-            PEDIATRIC
-          </span>
-        )}
-        {isPediatric && (
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-            mrdStandard === 'aapd'
-              ? 'bg-blue-500/20 text-blue-400'
-              : 'bg-slate-500/20 text-slate-400'
-          }`}>
-            {mrdStandard === 'aapd' ? 'AAPD MRDs' : 'FDA MRDs'}
-          </span>
-        )}
       </div>
 
       {/* Patient Type Toggle */}
@@ -259,7 +245,7 @@ export default function GlobalSettings({
             <Heart className="w-4 h-4" />
             Patient Status
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             {segBtn(
               !isCardiac && !isPregnant,
               'bg-emerald-600 shadow-emerald-500/25',
@@ -294,20 +280,18 @@ export default function GlobalSettings({
         </div>
       </div>
 
-      {/* Organ Impairment (Collapsible) */}
-      <details className="mt-4">
-        <summary className={`flex items-center gap-2 text-sm cursor-pointer select-none ${
-          isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-600'
-        }`}>
+      {/* Clinical Considerations — always visible */}
+      <div className="mt-4">
+        <label className={`flex items-center gap-2 text-sm mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
           <ShieldAlert className="w-4 h-4" />
           Clinical Considerations
           {(hepaticStatus !== 'none' || renalImpairment) && (
-            <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
               Active
             </span>
           )}
-        </summary>
-        <div className={`mt-3 p-3 rounded-xl border space-y-3 ${
+        </label>
+        <div className={`p-3 rounded-xl border space-y-3 ${
           isDarkMode ? 'bg-or-dark-700/50 border-slate-600/50' : 'bg-slate-50 border-slate-200'
         }`}>
           {/* Hepatic Impairment */}
@@ -362,7 +346,7 @@ export default function GlobalSettings({
             Advisory only — no dose calculation changes. No evidence-based dose reduction percentages exist for dental LA in organ impairment.
           </p>
         </div>
-      </details>
+      </div>
     </div>
   );
 }
