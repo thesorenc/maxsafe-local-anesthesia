@@ -1,6 +1,6 @@
 import React from 'react';
 import { Scale, Heart, AlertTriangle, User, Baby, Info, ShieldAlert } from 'lucide-react';
-import { AGE_TIERS, validateWeightForAge } from '../data/drugConstants';
+import { validateWeightForAge, ageToMonths } from '../data/drugConstants';
 
 export default function GlobalSettings({
   weight,
@@ -13,8 +13,8 @@ export default function GlobalSettings({
   setIsPregnant,
   patientType,
   setPatientType,
-  ageTier,
-  setAgeTier,
+  ageYears,
+  setAgeYears,
   mrdStandard,
   setMrdStandard,
   hepaticStatus,
@@ -41,8 +41,9 @@ export default function GlobalSettings({
   const isPediatric = patientType === 'pediatric';
 
   // Weight-for-age validation (pediatric only)
-  const weightWarning = isPediatric && weightInKg > 0
-    ? validateWeightForAge(ageTier, weightInKg)
+  const ageMonths = ageToMonths(ageYears);
+  const weightWarning = isPediatric && weightInKg > 0 && ageYears > 0
+    ? validateWeightForAge(ageMonths, weightInKg)
     : null;
 
   // Segmented control button helper
@@ -121,24 +122,30 @@ export default function GlobalSettings({
           isDarkMode ? 'bg-teal-500/5 border-teal-500/20' : 'bg-teal-50 border-teal-200'
         }`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Age Tier */}
+            {/* Age */}
             <div className="space-y-1">
               <label className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                Age Group
+                Age (years)
               </label>
-              <select
-                value={ageTier}
-                onChange={(e) => setAgeTier(e.target.value)}
+              <input
+                type="number"
+                value={ageYears || ''}
+                onChange={(e) => setAgeYears(Math.max(0, Math.min(17, parseFloat(e.target.value) || 0)))}
+                placeholder="e.g. 6"
+                min="0.5"
+                max="17"
+                step="0.5"
                 className={`w-full px-3 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/50 ${
                   isDarkMode
-                    ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
-                    : 'bg-white border border-slate-300 text-slate-900'
+                    ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500'
+                    : 'bg-white border border-slate-300 text-slate-900 placeholder-slate-400'
                 }`}
-              >
-                {AGE_TIERS.map(tier => (
-                  <option key={tier.id} value={tier.id}>{tier.label}</option>
-                ))}
-              </select>
+              />
+              {ageYears > 0 && ageYears < 0.5 && (
+                <p className={`text-xs ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                  Minimum supported age is 6 months (0.5 yr). Younger patients require anesthesiologist supervision.
+                </p>
+              )}
             </div>
 
             {/* MRD Standard */}

@@ -18,7 +18,7 @@ export default function VerificationBanner({
   patientType,
   isCardiac,
   isPregnant,
-  ageTier,
+  ageMonths,
   mrdStandard,
   epiLimit,
   drugSummary, // Array of { drugName, carpuleCount, mgDelivered, percentOfMax }
@@ -35,7 +35,7 @@ export default function VerificationBanner({
     patientType,
     isCardiac,
     isPregnant,
-    ageTier,
+    ageMonths,
     mrdStandard,
     drugSummary
   });

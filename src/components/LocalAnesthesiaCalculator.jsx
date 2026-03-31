@@ -3,7 +3,7 @@ import { Syringe, Plus, Trash2, Minus, Info, ChevronDown, AlertTriangle } from '
 import {
   LOCAL_ANESTHETICS,
   EPI_RATIOS,
-  isDrugAvailableForTier,
+  isDrugAvailable,
   getEffectiveMrd,
   getEpiLimit,
   getDrugWarnings,
@@ -15,7 +15,7 @@ import VerificationBanner from './VerificationBanner';
 const INITIAL_CARPULES = LOCAL_ANESTHETICS.reduce((acc, drug) => ({ ...acc, [drug.id]: 0 }), {});
 
 export default function LocalAnesthesiaCalculator({
-  weightKg, isCardiac, isPregnant, patientType, ageTier, mrdStandard,
+  weightKg, isCardiac, isPregnant, patientType, ageMonths, mrdStandard,
   hepaticStatus, renalImpairment, isDarkMode, resetKey
 }) {
   const [showInfo, setShowInfo] = useState(false);
@@ -40,14 +40,14 @@ export default function LocalAnesthesiaCalculator({
   // Filter drugs based on pediatric age restrictions
   const visibleDrugs = useMemo(() => {
     if (!isPediatric) return LOCAL_ANESTHETICS;
-    return LOCAL_ANESTHETICS.filter(drug => isDrugAvailableForTier(drug, ageTier));
-  }, [isPediatric, ageTier]);
+    return LOCAL_ANESTHETICS.filter(drug => isDrugAvailable(drug, ageMonths, mrdStandard));
+  }, [isPediatric, ageMonths, mrdStandard]);
 
   // Hidden drugs (for the "Why are some drugs not shown?" section)
   const hiddenDrugs = useMemo(() => {
     if (!isPediatric) return [];
-    return LOCAL_ANESTHETICS.filter(drug => !isDrugAvailableForTier(drug, ageTier));
-  }, [isPediatric, ageTier]);
+    return LOCAL_ANESTHETICS.filter(drug => !isDrugAvailable(drug, ageMonths, mrdStandard));
+  }, [isPediatric, ageMonths, mrdStandard]);
 
   // Derive all drug dose data from carpule counts
   const addedDrugs = useMemo(() => {
@@ -106,7 +106,7 @@ export default function LocalAnesthesiaCalculator({
 
     addedDrugs.forEach(added => {
       const drug = LOCAL_ANESTHETICS.find(d => d.id === added.drugId);
-      const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageTier);
+      const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageMonths);
       const weightBasedMax = mrd.maxDosePerKg * weightKg;
       const effectiveMax = Math.min(weightBasedMax, mrd.absoluteMax);
       const fraction = effectiveMax > 0 ? added.mgDelivered / effectiveMax : 0;
@@ -133,7 +133,7 @@ export default function LocalAnesthesiaCalculator({
       byDrug,
       activeDrugCount: addedDrugs.length
     };
-  }, [addedDrugs, weightKg, isCardiac, isPregnant, patientType, mrdStandard, ageTier]);
+  }, [addedDrugs, weightKg, isCardiac, isPregnant, patientType, mrdStandard, ageMonths, mrdStandard]);
 
   // Get color classes for drug cards
   const getDrugColors = (color) => {
@@ -278,12 +278,12 @@ export default function LocalAnesthesiaCalculator({
         patientType={patientType}
         isCardiac={isCardiac}
         isPregnant={isPregnant}
-        ageTier={ageTier}
+        ageMonths={ageMonths}
         mrdStandard={mrdStandard}
         epiLimit={calculations.epiLimit}
         drugSummary={addedDrugs.map(d => {
           const drug = LOCAL_ANESTHETICS.find(dr => dr.id === d.drugId);
-          const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageTier);
+          const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageMonths);
           const maxDose = weightKg > 0 ? Math.min(mrd.maxDosePerKg * weightKg, mrd.absoluteMax) : mrd.absoluteMax;
           return {
             drugName: drug.name,
@@ -304,11 +304,11 @@ export default function LocalAnesthesiaCalculator({
           const volumeMl = count * drug.carpuleSize;
           const mgDelivered = volumeMl * drug.concentration;
           const epiDelivered = volumeMl * epiConc;
-          const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageTier);
+          const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageMonths);
           const maxDose = weightKg > 0 ? Math.min(mrd.maxDosePerKg * weightKg, mrd.absoluteMax) : mrd.absoluteMax;
           const percentUsed = weightKg > 0 && count > 0 ? (mgDelivered / maxDose) * 100 : 0;
           const epiDisplay = getEpiDisplay(drug);
-          const warnings = isPediatric ? getDrugWarnings(drug, ageTier) : [];
+          const warnings = isPediatric ? getDrugWarnings(drug, ageMonths, mrdStandard) : [];
           const isDisabledByPregnancy = isPregnant && drug.id === 'prilocaine-4-plain';
 
           return (

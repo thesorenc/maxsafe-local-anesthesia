@@ -2,24 +2,6 @@
 // Concentrations: percentage (%) means g/100mL, so 2% = 20mg/mL
 // Epinephrine ratios: 1:100,000 = 0.01mg/mL = 10mcg/mL
 
-// Age tier definitions for pediatric mode
-// Weight ranges from CDC growth charts (3rd-97th percentile, sex-averaged)
-export const AGE_TIERS = [
-  { id: 'infant',      label: 'Infant (6-11 mo)',      minMonths: 6,   maxMonths: 11,
-    weightRange: { min: 5, max: 13, p50: 8 } },
-  { id: 'toddler',     label: 'Toddler (1-3 yr)',      minMonths: 12,  maxMonths: 47,
-    weightRange: { min: 6, max: 20, p50: 12 } },
-  { id: 'young-child', label: 'Young Child (4-6 yr)',   minMonths: 48,  maxMonths: 83,
-    weightRange: { min: 10, max: 30, p50: 19 } },
-  { id: 'school-age',  label: 'School Age (7-11 yr)',   minMonths: 84,  maxMonths: 143,
-    weightRange: { min: 15, max: 55, p50: 30 } },
-  { id: 'adolescent',  label: 'Adolescent (12-17 yr)',  minMonths: 144, maxMonths: 215,
-    weightRange: { min: 25, max: 100, p50: 50 } },
-];
-
-// Tier ordering for comparison (lower index = younger)
-const TIER_ORDER = ['infant', 'toddler', 'young-child', 'school-age', 'adolescent'];
-
 // Available epinephrine concentration ratios
 export const EPI_RATIOS = {
   '1:50,000':  0.02,
@@ -27,6 +9,16 @@ export const EPI_RATIOS = {
   '1:100,000': 0.01,
   '1:200,000': 0.005,
 };
+
+// CDC weight-for-age reference data (3rd-97th percentile, sex-averaged)
+// Used for weight validation only, not drug restrictions
+const WEIGHT_FOR_AGE = [
+  { minMonths: 6,   maxMonths: 11,  min: 5,  max: 13 },
+  { minMonths: 12,  maxMonths: 35,  min: 6,  max: 20 },
+  { minMonths: 36,  maxMonths: 71,  min: 10, max: 30 },
+  { minMonths: 72,  maxMonths: 143, min: 15, max: 55 },
+  { minMonths: 144, maxMonths: 215, min: 25, max: 100 },
+];
 
 export const LOCAL_ANESTHETICS = [
   {
@@ -43,19 +35,17 @@ export const LOCAL_ANESTHETICS = [
     category: 'amide',
     onset: '2-4 min',
     duration: '2.5-3.5 hrs',
-    // MRD values by dosing standard
     mrd: {
       adult:   { maxDosePerKg: 7.0, absoluteMax: 500 },
       pedAAPD: { maxDosePerKg: 4.4, absoluteMax: 300 },
       pedFDA:  { maxDosePerKg: 7.0, absoluteMax: 500 },
     },
-    // Available epi concentrations for this formulation
     availableEpiRatios: ['1:50,000', '1:80,000', '1:100,000', '1:200,000'],
     defaultEpiRatio: '1:100,000',
-    // Pediatric restrictions and warnings
     pediatric: {
-      minAgeTier: 'infant', // available from 6 months
-      warnings: {},
+      // Age restrictions by MRD standard
+      fda:  { minAgeMonths: 6 },   // No specific FDA age restriction; app minimum is 6mo
+      aapd: { minAgeMonths: 6 },   // AAPD lists for all pediatric ages
     }
   },
   {
@@ -74,14 +64,15 @@ export const LOCAL_ANESTHETICS = [
     halfLife: '44 min',
     mrd: {
       adult:   { maxDosePerKg: 7.0, absoluteMax: 500 },
-      pedAAPD: { maxDosePerKg: 7.0, absoluteMax: 500 }, // AAPD Table: same as FDA
+      pedAAPD: { maxDosePerKg: 7.0, absoluteMax: 500 },
       pedFDA:  { maxDosePerKg: 7.0, absoluteMax: 500 },
     },
     availableEpiRatios: ['1:100,000', '1:200,000'],
     defaultEpiRatio: '1:100,000',
     pediatric: {
-      minAgeTier: 'young-child', // FDA: not recommended <4 years
-      warnings: {},
+      // FDA label: not recommended <4 years. AAPD lists it with footnote re manufacturer rec.
+      fda:  { minAgeMonths: 48 },  // 4 years per FDA labeling
+      aapd: { minAgeMonths: 6 },   // AAPD does not restrict by age
     }
   },
   {
@@ -106,10 +97,10 @@ export const LOCAL_ANESTHETICS = [
     availableEpiRatios: ['1:200,000'],
     defaultEpiRatio: '1:200,000',
     pediatric: {
-      minAgeTier: 'adolescent', // FDA + AAPD: not recommended <12 years
-      warnings: {
-        general: 'Risk of prolonged soft tissue numbness and self-inflicted injury.',
-      },
+      // Both FDA and AAPD: not recommended <12 years
+      fda:  { minAgeMonths: 144 }, // 12 years
+      aapd: { minAgeMonths: 144 }, // 12 years (AAPD: "long-acting LA not recommended for children")
+      warnings: { general: 'Risk of prolonged soft tissue numbness and self-inflicted injury.' },
     }
   },
   {
@@ -134,10 +125,9 @@ export const LOCAL_ANESTHETICS = [
     availableEpiRatios: [],
     defaultEpiRatio: null,
     pediatric: {
-      minAgeTier: 'infant', // available from 6 months
-      warnings: {
-        infant: 'Immature hepatic CYP enzymes in infants — use lowest effective dose.',
-      },
+      fda:  { minAgeMonths: 6 },
+      aapd: { minAgeMonths: 6 },
+      warnings: { infantMonths: 12, infantWarning: 'Immature hepatic CYP enzymes — use lowest effective dose.' },
     }
   },
   {
@@ -156,22 +146,22 @@ export const LOCAL_ANESTHETICS = [
     halfLife: '1.6 hrs',
     mrd: {
       adult:   { maxDosePerKg: 6.0, absoluteMax: 400 },
-      pedAAPD: { maxDosePerKg: 6.0, absoluteMax: 400 }, // Not in AAPD Table; from endorsed literature
+      pedAAPD: { maxDosePerKg: 6.0, absoluteMax: 400 },
       pedFDA:  { maxDosePerKg: 8.0, absoluteMax: 600 },
     },
     availableEpiRatios: [],
     defaultEpiRatio: null,
     pediatric: {
-      minAgeTier: 'toddler', // hidden for infants (methemoglobinemia)
-      warnings: {
-        toddler:       'Methemoglobinemia risk — max 2.5 mg/kg for children <6 years. Monitor SpO₂.',
-        'young-child': 'Methemoglobinemia risk — max 2.5 mg/kg for children <6 years. Monitor SpO₂.',
+      // FDA: no specific age restriction in dental label (but methemoglobinemia risk documented)
+      // AAPD: relatively contraindicated in patients susceptible to methemoglobinemia; max 2.5 mg/kg <6yr
+      fda:  { minAgeMonths: 6 },   // Hidden <6mo (universal safety)
+      aapd: { minAgeMonths: 6 },   // Hidden <6mo; dose-capped <6yr in AAPD mode
+      // AAPD-specific: reduce MRD to 2.5 mg/kg for children <6 years (72 months)
+      aapdMethemoglobinemia: {
+        maxAgeMonths: 71, // applies to ages <72 months (6 years)
+        maxDosePerKg: 2.5,
+        warning: 'Methemoglobinemia risk — max 2.5 mg/kg for children <6 years. Monitor SpO₂.',
       },
-      // Override MRD for young tiers due to methemoglobinemia risk
-      mrdOverrides: {
-        toddler:       { maxDosePerKg: 2.5, absoluteMax: 400 },
-        'young-child': { maxDosePerKg: 2.5, absoluteMax: 400 },
-      }
     }
   }
 ];
@@ -187,19 +177,18 @@ export const EPINEPHRINE_LIMITS = {
 // --- Helper functions ---
 
 /**
- * Check if a drug is available for the given age tier in pediatric mode.
+ * Check if a drug is available for the given age and MRD standard.
  */
-export function isDrugAvailableForTier(drug, ageTierId) {
-  const minTierIndex = TIER_ORDER.indexOf(drug.pediatric.minAgeTier);
-  const currentTierIndex = TIER_ORDER.indexOf(ageTierId);
-  return currentTierIndex >= minTierIndex;
+export function isDrugAvailable(drug, ageMonths, mrdStandard) {
+  const restrictions = mrdStandard === 'aapd' ? drug.pediatric.aapd : drug.pediatric.fda;
+  return ageMonths >= restrictions.minAgeMonths;
 }
 
 /**
  * Get the effective MRD (maxDosePerKg and absoluteMax) for a drug
  * given the patient context.
  */
-export function getEffectiveMrd(drug, patientType, mrdStandard, ageTierId) {
+export function getEffectiveMrd(drug, patientType, mrdStandard, ageMonths) {
   if (patientType === 'adult') {
     return drug.mrd.adult;
   }
@@ -208,9 +197,12 @@ export function getEffectiveMrd(drug, patientType, mrdStandard, ageTierId) {
   const key = mrdStandard === 'aapd' ? 'pedAAPD' : 'pedFDA';
   let mrd = drug.mrd[key];
 
-  // Check for age-tier-specific MRD overrides (e.g., prilocaine <6yr)
-  if (drug.pediatric.mrdOverrides && drug.pediatric.mrdOverrides[ageTierId]) {
-    mrd = drug.pediatric.mrdOverrides[ageTierId];
+  // AAPD-specific: prilocaine methemoglobinemia dose cap for <6yr
+  if (mrdStandard === 'aapd' && drug.pediatric.aapdMethemoglobinemia) {
+    const rule = drug.pediatric.aapdMethemoglobinemia;
+    if (ageMonths <= rule.maxAgeMonths) {
+      mrd = { maxDosePerKg: rule.maxDosePerKg, absoluteMax: mrd.absoluteMax };
+    }
   }
 
   return mrd;
@@ -222,45 +214,57 @@ export function getEffectiveMrd(drug, patientType, mrdStandard, ageTierId) {
 export function getEpiLimit(patientType, isCardiac, isPregnant, weightKg) {
   if (patientType === 'pediatric') {
     const weightBased = weightKg * EPINEPHRINE_LIMITS.pediatricPerKg;
-    // For pediatric cardiac patients, use the lesser of weight-based and cardiac limit
     if (isCardiac) {
       return Math.min(weightBased, EPINEPHRINE_LIMITS.cardiac);
     }
     return weightBased;
   }
 
-  // Adult
   if (isCardiac) return EPINEPHRINE_LIMITS.cardiac;
   if (isPregnant) return EPINEPHRINE_LIMITS.pregnant;
   return EPINEPHRINE_LIMITS.healthy;
 }
 
 /**
- * Get warnings for a drug at the given age tier.
+ * Get warnings for a drug at the given age.
  * Returns an array of warning strings.
  */
-export function getDrugWarnings(drug, ageTierId) {
+export function getDrugWarnings(drug, ageMonths, mrdStandard) {
   const warnings = [];
-  if (drug.pediatric.warnings[ageTierId]) {
-    warnings.push(drug.pediatric.warnings[ageTierId]);
-  }
-  if (drug.pediatric.warnings.general) {
+
+  // General warnings (e.g., bupivacaine soft tissue injury)
+  if (drug.pediatric.warnings?.general) {
     warnings.push(drug.pediatric.warnings.general);
   }
+
+  // Infant hepatic immaturity warning (mepivacaine)
+  if (drug.pediatric.warnings?.infantMonths && ageMonths < drug.pediatric.warnings.infantMonths) {
+    warnings.push(drug.pediatric.warnings.infantWarning);
+  }
+
+  // AAPD methemoglobinemia warning (prilocaine <6yr)
+  if (mrdStandard === 'aapd' && drug.pediatric.aapdMethemoglobinemia) {
+    const rule = drug.pediatric.aapdMethemoglobinemia;
+    if (ageMonths <= rule.maxAgeMonths) {
+      warnings.push(rule.warning);
+    }
+  }
+
   return warnings;
 }
 
 /**
- * Validate weight against expected range for age tier.
+ * Validate weight against expected CDC range for age.
  * Returns null if valid, or a warning string if outside range.
  */
-export function validateWeightForAge(ageTierId, weightKg) {
-  const tier = AGE_TIERS.find(t => t.id === ageTierId);
-  if (!tier || !weightKg || weightKg <= 0) return null;
+export function validateWeightForAge(ageMonths, weightKg) {
+  if (!ageMonths || ageMonths < 6 || !weightKg || weightKg <= 0) return null;
 
-  const { min, max } = tier.weightRange;
-  if (weightKg < min || weightKg > max) {
-    return `Weight of ${weightKg.toFixed(1)} kg is outside the typical range (${min}-${max} kg) for ${tier.label}. Please verify.`;
+  const range = WEIGHT_FOR_AGE.find(r => ageMonths >= r.minMonths && ageMonths <= r.maxMonths);
+  if (!range) return null;
+
+  if (weightKg < range.min || weightKg > range.max) {
+    return `Weight of ${weightKg.toFixed(1)} kg is outside the typical range (${range.min}-${range.max} kg) for this age. Please verify.`;
   }
   return null;
 }
@@ -270,11 +274,19 @@ export function validateWeightForAge(ageTierId, weightKg) {
  */
 export function getEffectiveEpiConcentration(drug, epiOverrides) {
   if (!drug.availableEpiRatios || drug.availableEpiRatios.length === 0) {
-    return drug.epiConcentration; // Plain drugs: always 0
+    return drug.epiConcentration;
   }
   const selectedRatio = epiOverrides?.[drug.id];
   if (selectedRatio && EPI_RATIOS[selectedRatio] !== undefined) {
     return EPI_RATIOS[selectedRatio];
   }
-  return drug.epiConcentration; // Default
+  return drug.epiConcentration;
+}
+
+/**
+ * Convert age input to months for internal use.
+ * Accepts { years, months } object.
+ */
+export function ageToMonths(years, months = 0) {
+  return (years || 0) * 12 + (months || 0);
 }

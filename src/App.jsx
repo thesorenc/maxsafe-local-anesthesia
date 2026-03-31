@@ -20,8 +20,11 @@ function App() {
 
   // Pediatric mode state
   const [patientType, setPatientType] = useState('adult'); // 'adult' | 'pediatric'
-  const [ageTier, setAgeTier] = useState('school-age');
+  const [ageYears, setAgeYears] = useState(6);
   const [mrdStandard, setMrdStandard] = useState('aapd'); // 'aapd' | 'fda'
+
+  // Derived: age in months for drug restriction logic
+  const ageMonths = useMemo(() => Math.round((ageYears || 0) * 12), [ageYears]);
 
   // Organ impairment state (advisory only — no dose modifications)
   const [hepaticStatus, setHepaticStatus] = useState('none'); // 'none' | 'mild' | 'moderate-severe'
@@ -47,7 +50,7 @@ function App() {
       setIsCardiac(false);
       setIsPregnant(false);
       setPatientType('adult');
-      setAgeTier('school-age');
+      setAgeYears(6);
       setMrdStandard('aapd');
       setHepaticStatus('none');
       setRenalImpairment(false);
@@ -135,8 +138,8 @@ function App() {
           setIsPregnant={setIsPregnant}
           patientType={patientType}
           setPatientType={setPatientType}
-          ageTier={ageTier}
-          setAgeTier={setAgeTier}
+          ageYears={ageYears}
+          setAgeYears={setAgeYears}
           mrdStandard={mrdStandard}
           setMrdStandard={setMrdStandard}
           hepaticStatus={hepaticStatus}
@@ -199,7 +202,7 @@ function App() {
             isCardiac={isCardiac}
             isPregnant={isPregnant}
             patientType={patientType}
-            ageTier={ageTier}
+            ageMonths={ageMonths}
             mrdStandard={mrdStandard}
             hepaticStatus={hepaticStatus}
             renalImpairment={renalImpairment}
