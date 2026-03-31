@@ -247,12 +247,6 @@ export default function GlobalSettings({
               )}
             </div>
           )}
-          {isPediatric && weightInKg > 40 && (
-            <p className={`text-xs flex items-start gap-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              Weight exceeds 40 kg. Consider Adult dosing.
-            </p>
-          )}
         </div>
       </div>
 

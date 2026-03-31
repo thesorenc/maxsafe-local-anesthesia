@@ -264,7 +264,11 @@ export function validateWeightForAge(ageMonths, weightKg) {
   if (!range) return null;
 
   if (weightKg < range.min || weightKg > range.max) {
-    return `Weight of ${weightKg.toFixed(1)} kg is outside the typical range (${range.min}-${range.max} kg) for this age. Please verify.`;
+    let msg = `Weight of ${weightKg.toFixed(1)} kg is outside the typical range (${range.min}-${range.max} kg) for this age.`;
+    if (weightKg > 40) {
+      msg += ' Consider switching to Adult dosing.';
+    }
+    return msg;
   }
   return null;
 }

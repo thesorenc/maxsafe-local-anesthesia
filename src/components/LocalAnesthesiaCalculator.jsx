@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, Minus, Info, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Minus, X, Info, ChevronDown, AlertTriangle } from 'lucide-react';
 import {
   LOCAL_ANESTHETICS,
   EPI_RATIOS,
@@ -108,6 +108,19 @@ export default function LocalAnesthesiaCalculator({
     }));
   };
 
+  // Remove a non-default concentration row from a drug
+  const removeConcentration = (drugId, ratio) => {
+    setDrugCarpules(prev => {
+      const drugEntry = { ...(prev[drugId] || {}) };
+      delete drugEntry[ratio];
+      return { ...prev, [drugId]: drugEntry };
+    });
+    setExpandedConcentrations(prev => ({
+      ...prev,
+      [drugId]: (prev[drugId] || []).filter(r => r !== ratio)
+    }));
+  };
+
   const clearAll = () => {
     setDrugCarpules(INITIAL_CARPULES);
     setExpandedConcentrations({});
@@ -189,9 +202,20 @@ export default function LocalAnesthesiaCalculator({
 
     return (
       <div key={`${drug.id}-${epiRatio}`} className="flex items-center gap-2">
-        {/* Concentration label */}
-        <div className={`w-24 flex-shrink-0 text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-          {isPlain ? 'Plain' : `Epi ${epiRatio}`}
+        {/* Concentration label + remove button */}
+        <div className={`w-24 flex-shrink-0 text-xs font-medium flex items-center gap-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          {!isDefault && !isPlain && (
+            <button
+              onClick={() => removeConcentration(drug.id, epiRatio)}
+              className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
+                isDarkMode ? 'text-slate-500 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
+              }`}
+              aria-label={`Remove ${epiRatio} concentration`}
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+          <span>{isPlain ? 'Plain' : `Epi ${epiRatio}`}</span>
         </div>
 
         {/* Counter */}
@@ -445,10 +469,9 @@ export default function LocalAnesthesiaCalculator({
                         {unusedConcentrations.map(ratio => (
                           <button
                             key={ratio}
-                            onClick={() => {
+                            onClick={(e) => {
                               addConcentration(drug.id, ratio);
-                              // Close the details
-                              const el = document.activeElement?.closest('details');
+                              const el = e.target.closest('details');
                               if (el) el.open = false;
                             }}
                             className={`block w-full text-left px-3 py-2 rounded-lg text-sm btn-press ${
