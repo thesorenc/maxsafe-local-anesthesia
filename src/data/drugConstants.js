@@ -177,11 +177,28 @@ export const EPINEPHRINE_LIMITS = {
 // --- Helper functions ---
 
 /**
- * Check if a drug is available for the given age and MRD standard.
+ * Check if a drug is available for the given age.
+ * Uses the stricter of FDA and AAPD restrictions (higher minAgeMonths).
  */
-export function isDrugAvailable(drug, ageMonths, mrdStandard) {
-  const restrictions = mrdStandard === 'aapd' ? drug.pediatric.aapd : drug.pediatric.fda;
-  return ageMonths >= restrictions.minAgeMonths;
+export function isDrugAvailable(drug, ageMonths) {
+  const minAge = Math.max(drug.pediatric.fda.minAgeMonths, drug.pediatric.aapd.minAgeMonths);
+  return ageMonths >= minAge;
+}
+
+/**
+ * Get the restriction reason for a drug at the given age, or null if available.
+ */
+export function getDrugRestrictionReason(drug, ageMonths) {
+  const fdaMin = drug.pediatric.fda.minAgeMonths;
+  const aapdMin = drug.pediatric.aapd.minAgeMonths;
+  const minAge = Math.max(fdaMin, aapdMin);
+  if (ageMonths >= minAge) return null;
+
+  const years = Math.round(minAge / 12);
+  if (drug.id === 'articaine-4-epi-100k') return `Not recommended under ${years} years (FDA)`;
+  if (drug.id === 'bupivacaine-05-epi-200k') return `Not recommended under ${years} years (FDA + AAPD)`;
+  if (drug.id === 'prilocaine-4-plain') return 'Methemoglobinemia risk in infants';
+  return `Not recommended under ${years} years`;
 }
 
 /**

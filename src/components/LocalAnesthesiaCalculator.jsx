@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, Minus, X, Info, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Minus, X, Info, AlertTriangle } from 'lucide-react';
 import {
   LOCAL_ANESTHETICS,
   EPI_RATIOS,
   isDrugAvailable,
+  getDrugRestrictionReason,
   getEffectiveMrd,
   getEpiLimit,
   getDrugWarnings,
@@ -29,7 +30,6 @@ export default function LocalAnesthesiaCalculator({
   weightKg, isCardiac, isPregnant, patientType, ageMonths, mrdStandard,
   hepaticStatus, renalImpairment, isDarkMode, resetKey
 }) {
-  const [showRestrictions, setShowRestrictions] = useState(false);
 
   // Carpule counts: { drugId: { epiRatio: count } }
   const [drugCarpules, setDrugCarpules] = useState(INITIAL_CARPULES);
@@ -47,16 +47,8 @@ export default function LocalAnesthesiaCalculator({
 
   const isPediatric = patientType === 'pediatric';
 
-  // Filter drugs based on pediatric age restrictions
-  const visibleDrugs = useMemo(() => {
-    if (!isPediatric) return LOCAL_ANESTHETICS;
-    return LOCAL_ANESTHETICS.filter(drug => isDrugAvailable(drug, ageMonths, mrdStandard));
-  }, [isPediatric, ageMonths, mrdStandard]);
-
-  const hiddenDrugs = useMemo(() => {
-    if (!isPediatric) return [];
-    return LOCAL_ANESTHETICS.filter(drug => !isDrugAvailable(drug, ageMonths, mrdStandard));
-  }, [isPediatric, ageMonths, mrdStandard]);
+  // All drugs are always shown — restricted ones are greyed out
+  const visibleDrugs = LOCAL_ANESTHETICS;
 
   // Flatten all drug+concentration entries for dose calculation
   const addedDrugs = useMemo(() => {
@@ -370,6 +362,9 @@ export default function LocalAnesthesiaCalculator({
           const percentUsed = weightKg > 0 && totalCount > 0 ? (totalMg / maxDose) * 100 : 0;
           const warnings = isPediatric ? getDrugWarnings(drug, ageMonths, mrdStandard) : [];
           const isDisabledByPregnancy = isPregnant && drug.id === 'prilocaine-4-plain';
+          const ageRestriction = isPediatric ? getDrugRestrictionReason(drug, ageMonths) : null;
+          const isDisabled = isDisabledByPregnancy || !!ageRestriction;
+          const disabledReason = isDisabledByPregnancy ? 'Not recommended in pregnancy' : ageRestriction;
 
           // Determine which concentration rows to show
           const isPlainDrug = !drug.availableEpiRatios || drug.availableEpiRatios.length === 0;
@@ -390,17 +385,17 @@ export default function LocalAnesthesiaCalculator({
             <div
               key={drug.id}
               className={`rounded-2xl p-4 border-t border-r border-b transition-all relative ${colors.bg} ${colors.border} ${
-                isDisabledByPregnancy ? 'opacity-50 pointer-events-none' : ''
+                isDisabled ? 'opacity-50 pointer-events-none' : ''
               } border-l-4 overflow-hidden`}
               style={{ borderLeftColor }}
             >
-              {isDisabledByPregnancy && (
+              {isDisabled && (
                 <div className={`absolute inset-0 rounded-2xl flex items-center justify-center z-10 pointer-events-none ${
                   isDarkMode ? 'bg-or-dark-900/60' : 'bg-white/60'
                 }`}>
-                  <span className={`px-3 py-1.5 rounded-lg text-sm font-bold ${
+                  <span className={`px-3 py-1.5 rounded-lg text-sm font-bold text-center ${
                     isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'
-                  }`}>Not recommended in pregnancy</span>
+                  }`}>{disabledReason}</span>
                 </div>
               )}
 
@@ -492,33 +487,6 @@ export default function LocalAnesthesiaCalculator({
           );
         })}
       </div>
-
-      {/* Hidden drugs explanation */}
-      {hiddenDrugs.length > 0 && (
-        <details>
-          <summary className={`flex items-center gap-2 text-sm cursor-pointer select-none ${
-            isDarkMode ? 'text-slate-500 hover:text-slate-400' : 'text-slate-400 hover:text-slate-500'
-          }`}>
-            <ChevronDown className="w-4 h-4" />
-            Why are some drugs not shown? ({hiddenDrugs.length} hidden)
-          </summary>
-          <div className={`mt-2 p-3 rounded-xl border text-xs space-y-2 ${
-            isDarkMode ? 'bg-or-dark-800/50 border-slate-700/50 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-          }`}>
-            {hiddenDrugs.map(drug => (
-              <div key={drug.id} className="flex items-start gap-2">
-                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getDrugColors(drug.color).accent}`} />
-                <div>
-                  <span className="font-medium">{drug.name}</span>
-                  {drug.id === 'articaine-4-epi-100k' && ' — Not recommended for patients under 4 years (FDA labeling).'}
-                  {drug.id === 'bupivacaine-05-epi-200k' && ' — Not recommended for patients under 12 years (FDA + AAPD).'}
-                  {drug.id === 'prilocaine-4-plain' && ' — Methemoglobinemia risk. Hidden for safety.'}
-                </div>
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
 
       {/* Clear All */}
       <button
