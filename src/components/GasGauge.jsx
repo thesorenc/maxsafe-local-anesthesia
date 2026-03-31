@@ -41,7 +41,9 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
   const strokeWidth = 9;
   const center = size / 2;
   const radius = (size - strokeWidth * 2) / 2;
-  const svgHeight = size * 0.72; // Crop below the arc's bottom endpoints
+  // Arc bottom endpoints are at y ≈ center + radius*sin(45°) + stroke/2 ≈ 111
+  // Give 6px padding below arc endpoints for clean separation from labels
+  const svgHeight = Math.ceil(center + radius * Math.sin(Math.PI / 4) + strokeWidth / 2 + 6);
 
   // 270 degrees, starting from bottom-left
   const startAngle = 135;
@@ -106,7 +108,7 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
           <svg
             width={size}
             height={svgHeight}
-            viewBox={`0 0 ${size} ${svgHeight + 4}`}
+            viewBox={`0 0 ${size} ${svgHeight}`}
             className="overflow-visible"
           >
             {/* Track */}
@@ -147,8 +149,8 @@ export default function GasGauge({ percentage: rawPercentage, label, sublabel, d
             />
           </svg>
 
-          {/* Centered readout — absolutely positioned inside the arc */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingBottom: '18%' }}>
+          {/* Centered readout — positioned in the arc's open center area */}
+          <div className="absolute inset-0 flex flex-col items-center" style={{ paddingTop: '22%' }}>
             <span className={`font-mono text-2xl font-bold tracking-tight leading-none ${color.text}`}>
               {displayNum.toFixed(1)}
               <span className="text-sm">%</span>
