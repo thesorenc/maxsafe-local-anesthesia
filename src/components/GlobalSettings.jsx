@@ -94,94 +94,6 @@ export default function GlobalSettings({
         </h2>
       </div>
 
-      {/* Patient Type Toggle */}
-      <div className="mb-4">
-        <label className={`flex items-center gap-2 text-sm mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-          <Baby className="w-4 h-4" />
-          Patient Type
-        </label>
-        <div className="flex gap-2">
-          {segBtn(
-            !isPediatric,
-            'bg-blue-600 shadow-blue-500/25',
-            () => setPatientType('adult'),
-            <><User className="w-4 h-4" /> Adult</>
-          )}
-          {segBtn(
-            isPediatric,
-            'bg-teal-600 shadow-teal-500/25',
-            () => setPatientType('pediatric'),
-            <><Baby className="w-4 h-4" /> Pediatric</>
-          )}
-        </div>
-      </div>
-
-      {/* Pediatric Controls (shown only when pediatric) */}
-      {isPediatric && (
-        <div className={`mb-4 p-3 rounded-xl border ${
-          isDarkMode ? 'bg-teal-500/5 border-teal-500/20' : 'bg-teal-50 border-teal-200'
-        }`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Age */}
-            <div className="space-y-1">
-              <label className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                Age (years)
-              </label>
-              <input
-                type="number"
-                value={ageYears || ''}
-                onChange={(e) => setAgeYears(Math.max(0, Math.min(17, parseFloat(e.target.value) || 0)))}
-                placeholder="e.g. 6"
-                min="0.5"
-                max="17"
-                step="0.5"
-                className={`w-full px-3 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/50 ${
-                  isDarkMode
-                    ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100 placeholder-slate-500'
-                    : 'bg-white border border-slate-300 text-slate-900 placeholder-slate-400'
-                }`}
-              />
-              {ageYears > 0 && ageYears < 0.5 && (
-                <p className={`text-xs ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
-                  Minimum supported age is 6 months (0.5 yr). Younger patients require anesthesiologist supervision.
-                </p>
-              )}
-            </div>
-
-            {/* MRD Standard */}
-            <div className="space-y-1">
-              <label className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                MRD Standard
-              </label>
-              <div className="flex gap-2">
-                {smallToggle(
-                  mrdStandard === 'aapd',
-                  'bg-blue-600',
-                  () => setMrdStandard('aapd'),
-                  'AAPD'
-                )}
-                {smallToggle(
-                  mrdStandard === 'fda',
-                  'bg-slate-600',
-                  () => setMrdStandard('fda'),
-                  'FDA'
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* >40kg suggestion */}
-          {weightInKg > 40 && (
-            <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${
-              isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
-            }`}>
-              <Info className="w-3.5 h-3.5 flex-shrink-0" />
-              Patient weight exceeds 40 kg. Consider whether adult dosing parameters may be appropriate.
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weight Input */}
         <div className="space-y-2">
@@ -237,7 +149,6 @@ export default function GlobalSettings({
               = {weightInKg.toFixed(1)} kg
             </p>
           )}
-          {/* Weight-for-age warning */}
           {weightWarning && (
             <p className={`text-xs flex items-start gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
               <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
@@ -246,45 +157,97 @@ export default function GlobalSettings({
           )}
         </div>
 
-        {/* Patient Status */}
+        {/* Patient Age */}
         <div className="space-y-2">
           <label className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            <Heart className="w-4 h-4" />
-            Patient Status
+            <Baby className="w-4 h-4" />
+            Patient Age
           </label>
-          <div className="flex flex-col gap-2">
-            {segBtn(
-              !isCardiac && !isPregnant,
-              'bg-emerald-600 shadow-emerald-500/25',
-              () => { setIsCardiac(false); setIsPregnant(false); },
-              <><span className="text-lg">✓</span> Healthy</>
-            )}
-            {segBtn(
-              isCardiac,
-              'bg-amber-600 shadow-amber-500/25',
-              () => { setIsCardiac(true); setIsPregnant(false); },
-              <><AlertTriangle className="w-4 h-4" /> Cardiac</>
-            )}
-            {segBtn(
-              isPregnant,
-              'bg-purple-600 shadow-purple-500/25',
-              () => { setIsPregnant(true); setIsCardiac(false); },
-              <><span className="text-lg">♀</span> Pregnant</>
-            )}
-          </div>
-          {isCardiac && (
-            <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
-              <AlertTriangle className="w-3 h-3" />
-              Epinephrine limit: 0.04mg (40 mcg)
-            </p>
+          <select
+            value={isPediatric ? String(ageYears) : 'adult'}
+            onChange={(e) => {
+              if (e.target.value === 'adult') {
+                setPatientType('adult');
+              } else {
+                setPatientType('pediatric');
+                setAgeYears(parseInt(e.target.value));
+              }
+            }}
+            className={`w-full px-4 py-3 rounded-xl text-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+              isDarkMode
+                ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
+                : 'bg-slate-100 border border-slate-300 text-slate-900'
+            }`}
+          >
+            {Array.from({ length: 17 }, (_, i) => i + 1).map(age => (
+              <option key={age} value={String(age)}>{age} yr</option>
+            ))}
+            <option value="adult">Adult</option>
+          </select>
+          {isPediatric && (
+            <div className="flex gap-2 items-center">
+              <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>MRD:</span>
+              {smallToggle(
+                mrdStandard === 'aapd',
+                'bg-blue-600',
+                () => setMrdStandard('aapd'),
+                'AAPD'
+              )}
+              {smallToggle(
+                mrdStandard === 'fda',
+                'bg-slate-600',
+                () => setMrdStandard('fda'),
+                'FDA'
+              )}
+            </div>
           )}
-          {isPregnant && (
-            <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-              <AlertTriangle className="w-3 h-3" />
-              Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.
+          {isPediatric && weightInKg > 40 && (
+            <p className={`text-xs flex items-start gap-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+              Weight exceeds 40 kg. Consider Adult dosing.
             </p>
           )}
         </div>
+      </div>
+
+      {/* Patient Status */}
+      <div className="mt-4 space-y-2">
+        <label className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+          <Heart className="w-4 h-4" />
+          Patient Status
+        </label>
+        <div className="grid grid-cols-3 gap-2">
+          {segBtn(
+            !isCardiac && !isPregnant,
+            'bg-emerald-600 shadow-emerald-500/25',
+            () => { setIsCardiac(false); setIsPregnant(false); },
+            <><span className="text-lg">✓</span> Healthy</>
+          )}
+          {segBtn(
+            isCardiac,
+            'bg-amber-600 shadow-amber-500/25',
+            () => { setIsCardiac(true); setIsPregnant(false); },
+            <><AlertTriangle className="w-4 h-4" /> Cardiac</>
+          )}
+          {segBtn(
+            isPregnant,
+            'bg-purple-600 shadow-purple-500/25',
+            () => { setIsPregnant(true); setIsCardiac(false); },
+            <><span className="text-lg">♀</span> Pregnant</>
+          )}
+        </div>
+        {isCardiac && (
+          <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+            <AlertTriangle className="w-3 h-3" />
+            Epinephrine limit: 0.04mg (40 mcg)
+          </p>
+        )}
+        {isPregnant && (
+          <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+            <AlertTriangle className="w-3 h-3" />
+            Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.
+          </p>
+        )}
       </div>
 
       {/* Clinical Considerations — always visible */}
