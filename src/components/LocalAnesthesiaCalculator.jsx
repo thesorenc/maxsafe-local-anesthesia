@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Syringe, Plus, Trash2, Minus, Info, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Minus, Info, ChevronDown, AlertTriangle } from 'lucide-react';
 import {
   LOCAL_ANESTHETICS,
   EPI_RATIOS,
@@ -29,7 +29,6 @@ export default function LocalAnesthesiaCalculator({
   weightKg, isCardiac, isPregnant, patientType, ageMonths, mrdStandard,
   hepaticStatus, renalImpairment, isDarkMode, resetKey
 }) {
-  const [showInfo, setShowInfo] = useState(false);
   const [showRestrictions, setShowRestrictions] = useState(false);
 
   // Carpule counts: { drugId: { epiRatio: count } }
@@ -239,38 +238,6 @@ export default function LocalAnesthesiaCalculator({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Syringe className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-          <h2 className={`text-lg font-semibold font-display ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-            Drugs
-          </h2>
-        </div>
-        <button
-          onClick={() => setShowInfo(!showInfo)}
-          aria-label={showInfo ? 'Hide info' : 'Show info'}
-          className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
-            isDarkMode ? 'hover:bg-or-dark-700' : 'hover:bg-slate-200'
-          }`}
-        >
-          <Info className={`w-5 h-5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
-        </button>
-      </div>
-
-      {/* Info Panel */}
-      <div className={`overflow-hidden transition-all duration-300 ${showInfo ? 'max-h-60' : 'max-h-0'}`}>
-        <div className={`rounded-2xl p-4 border text-sm ${
-          isDarkMode ? 'bg-blue-500/5 border-blue-500/20 text-slate-300' : 'bg-blue-50 border-blue-200 text-slate-700'
-        }`}>
-          <h3 className={`font-semibold mb-2 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>Fractional Toxicity Rule</h3>
-          <p className="mb-2">When combining local anesthetics, toxicity is additive:</p>
-          <div className={`p-2 rounded-lg font-mono text-center mb-2 ${isDarkMode ? 'bg-or-dark-900/50' : 'bg-white'}`}>
-            (Dose₁ / Max₁) + (Dose₂ / Max₂) + ... ≤ 1.0 (100%)
-          </div>
-        </div>
-      </div>
-
       {/* Gauges */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4" aria-live="polite" aria-atomic="true">
         <GasGauge

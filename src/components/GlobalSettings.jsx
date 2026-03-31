@@ -1,6 +1,66 @@
-import React from 'react';
-import { Scale, Heart, AlertTriangle, User, Baby, Info, ShieldAlert } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Scale, Heart, AlertTriangle, User, Baby, Info, ShieldAlert, ChevronDown } from 'lucide-react';
 import { validateWeightForAge, ageToMonths } from '../data/drugConstants';
+
+// Custom age dropdown matching the app's design language
+const AGE_OPTIONS = [
+  ...Array.from({ length: 17 }, (_, i) => ({ value: String(i + 1), label: `${i + 1} yr` })),
+  { value: 'adult', label: 'Adult' },
+];
+
+function AgeDropdown({ value, onChange, isDarkMode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isOpen]);
+
+  const selected = AGE_OPTIONS.find(o => o.value === value) || AGE_OPTIONS[AGE_OPTIONS.length - 1];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-3 rounded-xl text-lg text-left flex items-center justify-between transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+          isDarkMode
+            ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
+            : 'bg-slate-100 border border-slate-300 text-slate-900'
+        }`}
+      >
+        <span>{selected.label}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''} ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+      </button>
+
+      {isOpen && (
+        <div className={`absolute z-50 mt-1 w-full rounded-xl border shadow-lg overflow-hidden ${
+          isDarkMode ? 'bg-or-dark-800 border-slate-700' : 'bg-white border-slate-200'
+        }`}>
+          <div className="max-h-60 overflow-y-auto py-1">
+            {AGE_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => { onChange(opt.value); setIsOpen(false); }}
+                className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                  opt.value === value
+                    ? isDarkMode ? 'bg-blue-600/20 text-blue-400 font-semibold' : 'bg-blue-50 text-blue-600 font-semibold'
+                    : isDarkMode ? 'text-slate-300 hover:bg-or-dark-700' : 'text-slate-700 hover:bg-slate-100'
+                } ${opt.value === 'adult' ? `border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}` : ''}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GlobalSettings({
   weight,
@@ -152,33 +212,24 @@ export default function GlobalSettings({
           )}
         </div>
 
-        {/* Patient Age */}
+        {/* Patient Age — custom dropdown */}
         <div className="space-y-2">
           <label className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
             <Baby className="w-4 h-4" />
             Patient Age
           </label>
-          <select
+          <AgeDropdown
             value={isPediatric ? String(ageYears) : 'adult'}
-            onChange={(e) => {
-              if (e.target.value === 'adult') {
+            onChange={(val) => {
+              if (val === 'adult') {
                 setPatientType('adult');
               } else {
                 setPatientType('pediatric');
-                setAgeYears(parseInt(e.target.value));
+                setAgeYears(parseInt(val));
               }
             }}
-            className={`w-full px-4 py-3 rounded-xl text-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
-              isDarkMode
-                ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
-                : 'bg-slate-100 border border-slate-300 text-slate-900'
-            }`}
-          >
-            {Array.from({ length: 17 }, (_, i) => i + 1).map(age => (
-              <option key={age} value={String(age)}>{age} yr</option>
-            ))}
-            <option value="adult">Adult</option>
-          </select>
+            isDarkMode={isDarkMode}
+          />
           {isPediatric && (
             <div className="flex gap-2 items-center">
               <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>MRD:</span>
