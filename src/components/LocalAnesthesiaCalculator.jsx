@@ -314,10 +314,14 @@ export default function LocalAnesthesiaCalculator({
           return (
             <div
               key={drug.id}
-              className={`rounded-2xl p-4 border transition-all relative ${colors.bg} ${colors.border} ${
+              className={`rounded-2xl p-4 border-t border-r border-b transition-all relative ${colors.bg} ${colors.border} ${
                 isDisabledByPregnancy ? 'opacity-50 pointer-events-none' : ''
-              } ${!epiDisplay.isPlain ? 'border-l-4' : ''}`}
-              style={!epiDisplay.isPlain ? { borderLeftColor: isDarkMode ? 'rgba(245,158,11,0.5)' : 'rgba(245,158,11,0.7)' } : {}}
+              } border-l-4 overflow-hidden`}
+              style={{
+                borderLeftColor: count > 0
+                  ? percentUsed > 100 ? '#ef4444' : percentUsed > 80 ? '#f59e0b' : '#10b981'
+                  : isDarkMode ? 'rgba(100,116,139,0.2)' : 'rgba(203,213,225,0.5)'
+              }}
             >
               {isDisabledByPregnancy && (
                 <div className={`absolute inset-0 rounded-2xl flex items-center justify-center z-10 pointer-events-none ${
@@ -388,8 +392,8 @@ export default function LocalAnesthesiaCalculator({
                 </span>
               </div>
 
-              {/* Epi concentration selector (for drugs with multiple options) */}
-              {drug.availableEpiRatios && drug.availableEpiRatios.length > 1 && (
+              {/* Epi concentration selector (shown only when actively dosing) */}
+              {drug.availableEpiRatios && drug.availableEpiRatios.length > 1 && count > 0 && (
                 <div className="mb-3">
                   <select
                     value={epiOverrides[drug.id] || drug.defaultEpiRatio}
@@ -470,18 +474,6 @@ export default function LocalAnesthesiaCalculator({
                 </button>
               </div>
 
-              {/* Progress bar for this drug */}
-              <div className={`mt-3 h-2 rounded-full overflow-hidden ${
-                isDarkMode ? 'bg-or-dark-700' : 'bg-slate-200'
-              }`}>
-                <div
-                  className={`h-full transition-all duration-300 rounded-full ${
-                    percentUsed > 100 ? 'bg-red-500' :
-                    percentUsed > 80 ? 'bg-amber-500' : 'bg-emerald-500'
-                  }`}
-                  style={{ width: `${Math.min(percentUsed, 100)}%` }}
-                />
-              </div>
             </div>
           );
         })}
