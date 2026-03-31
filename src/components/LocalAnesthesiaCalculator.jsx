@@ -415,7 +415,7 @@ export default function LocalAnesthesiaCalculator({
                       {isPediatric && <span className={isDarkMode ? 'text-teal-400' : 'text-teal-600'}> — {mrdStandard === 'aapd' ? 'AAPD' : 'FDA'}</span>}
                       {' · '}{drug.carpuleSize}mL
                     </p>
-                    {totalCount > 0 && (
+                    {(drug.onset || drug.duration) && (
                       <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                         {drug.onset && <span>Onset: {drug.onset}</span>}
                         {drug.onset && drug.duration && <span> · </span>}
