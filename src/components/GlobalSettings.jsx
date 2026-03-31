@@ -1,5 +1,6 @@
 import React from 'react';
-import { Scale, Heart, AlertTriangle, User } from 'lucide-react';
+import { Scale, Heart, AlertTriangle, User, Baby, Info, ShieldAlert } from 'lucide-react';
+import { AGE_TIERS, validateWeightForAge } from '../data/drugConstants';
 
 export default function GlobalSettings({
   weight,
@@ -8,6 +9,18 @@ export default function GlobalSettings({
   setWeightUnit,
   isCardiac,
   setIsCardiac,
+  isPregnant,
+  setIsPregnant,
+  patientType,
+  setPatientType,
+  ageTier,
+  setAgeTier,
+  mrdStandard,
+  setMrdStandard,
+  hepaticStatus,
+  setHepaticStatus,
+  renalImpairment,
+  setRenalImpairment,
   isDarkMode
 }) {
   // Convert weight when unit changes
@@ -22,8 +35,49 @@ export default function GlobalSettings({
     setWeightUnit(newUnit);
   };
 
-  // Get weight in kg for calculations
+  // Get weight in kg for display/validation
   const weightInKg = weightUnit === 'kg' ? weight : weight / 2.205;
+
+  const isPediatric = patientType === 'pediatric';
+
+  // Weight-for-age validation (pediatric only)
+  const weightWarning = isPediatric && weightInKg > 0
+    ? validateWeightForAge(ageTier, weightInKg)
+    : null;
+
+  // Segmented control button helper
+  const segBtn = (isActive, activeColor, onClick, children) => (
+    <button
+      onClick={onClick}
+      aria-pressed={isActive}
+      className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-150 touch-manipulation select-none flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+        isActive
+          ? `${activeColor} text-white shadow-lg`
+          : isDarkMode
+            ? 'bg-or-dark-700 text-slate-400 hover:bg-or-dark-600 border border-slate-600/50'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300'
+      }`}
+    >
+      {children}
+    </button>
+  );
+
+  // Small toggle button for secondary controls
+  const smallToggle = (isActive, activeColor, onClick, label) => (
+    <button
+      onClick={onClick}
+      aria-pressed={isActive}
+      className={`py-2 px-3 rounded-lg text-sm font-medium transition-all duration-150 touch-manipulation select-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
+        isActive
+          ? `${activeColor} text-white shadow-md`
+          : isDarkMode
+            ? 'bg-or-dark-700 text-slate-400 hover:bg-or-dark-600 border border-slate-600/50'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className={`rounded-2xl p-4 mb-4 border transition-colors ${
@@ -31,12 +85,109 @@ export default function GlobalSettings({
         ? 'bg-or-dark-800/80 border-slate-700/50'
         : 'bg-white border-slate-200'
     }`}>
+      {/* Header with badges */}
       <div className="flex items-center gap-2 mb-4">
         <User className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
         <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
           Patient Settings
         </h2>
+        {isPediatric && (
+          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-teal-500 text-white">
+            PEDIATRIC
+          </span>
+        )}
+        {isPediatric && (
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+            mrdStandard === 'aapd'
+              ? 'bg-blue-500/20 text-blue-400'
+              : 'bg-slate-500/20 text-slate-400'
+          }`}>
+            {mrdStandard === 'aapd' ? 'AAPD MRDs' : 'FDA MRDs'}
+          </span>
+        )}
       </div>
+
+      {/* Patient Type Toggle */}
+      <div className="mb-4">
+        <label className={`flex items-center gap-2 text-sm mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+          <Baby className="w-4 h-4" />
+          Patient Type
+        </label>
+        <div className="flex gap-2">
+          {segBtn(
+            !isPediatric,
+            'bg-blue-600 shadow-blue-500/25',
+            () => setPatientType('adult'),
+            <><User className="w-4 h-4" /> Adult</>
+          )}
+          {segBtn(
+            isPediatric,
+            'bg-teal-600 shadow-teal-500/25',
+            () => setPatientType('pediatric'),
+            <><Baby className="w-4 h-4" /> Pediatric</>
+          )}
+        </div>
+      </div>
+
+      {/* Pediatric Controls (shown only when pediatric) */}
+      {isPediatric && (
+        <div className={`mb-4 p-3 rounded-xl border ${
+          isDarkMode ? 'bg-teal-500/5 border-teal-500/20' : 'bg-teal-50 border-teal-200'
+        }`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Age Tier */}
+            <div className="space-y-1">
+              <label className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                Age Group
+              </label>
+              <select
+                value={ageTier}
+                onChange={(e) => setAgeTier(e.target.value)}
+                className={`w-full px-3 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/50 ${
+                  isDarkMode
+                    ? 'bg-or-dark-700 border border-slate-600/50 text-slate-100'
+                    : 'bg-white border border-slate-300 text-slate-900'
+                }`}
+              >
+                {AGE_TIERS.map(tier => (
+                  <option key={tier.id} value={tier.id}>{tier.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* MRD Standard */}
+            <div className="space-y-1">
+              <label className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                MRD Standard
+              </label>
+              <div className="flex gap-2">
+                {smallToggle(
+                  mrdStandard === 'aapd',
+                  'bg-blue-600',
+                  () => setMrdStandard('aapd'),
+                  'AAPD'
+                )}
+                {smallToggle(
+                  mrdStandard === 'fda',
+                  'bg-slate-600',
+                  () => setMrdStandard('fda'),
+                  'FDA'
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* >40kg suggestion */}
+          {weightInKg > 40 && (
+            <div className={`mt-2 flex items-center gap-2 text-xs p-2 rounded-lg ${
+              isDarkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
+            }`}>
+              <Info className="w-3.5 h-3.5 flex-shrink-0" />
+              Patient weight exceeds 40 kg. Consider whether adult dosing parameters may be appropriate.
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weight Input */}
@@ -93,6 +244,13 @@ export default function GlobalSettings({
               = {weightInKg.toFixed(1)} kg
             </p>
           )}
+          {/* Weight-for-age warning */}
+          {weightWarning && (
+            <p className={`text-xs flex items-start gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+              <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+              {weightWarning}
+            </p>
+          )}
         </div>
 
         {/* Patient Status */}
@@ -102,34 +260,24 @@ export default function GlobalSettings({
             Patient Status
           </label>
           <div className="flex gap-2">
-            <button
-              onClick={() => setIsCardiac(false)}
-              aria-pressed={!isCardiac}
-              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-150 touch-manipulation select-none flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
-                !isCardiac
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                  : isDarkMode
-                    ? 'bg-or-dark-700 text-slate-400 hover:bg-or-dark-600 border border-slate-600/50'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300'
-              }`}
-            >
-              <span className="text-lg">✓</span>
-              Healthy
-            </button>
-            <button
-              onClick={() => setIsCardiac(true)}
-              aria-pressed={isCardiac}
-              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-150 touch-manipulation select-none flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
-                isCardiac
-                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25'
-                  : isDarkMode
-                    ? 'bg-or-dark-700 text-slate-400 hover:bg-or-dark-600 border border-slate-600/50'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4" />
-              Cardiac
-            </button>
+            {segBtn(
+              !isCardiac && !isPregnant,
+              'bg-emerald-600 shadow-emerald-500/25',
+              () => { setIsCardiac(false); setIsPregnant(false); },
+              <><span className="text-lg">✓</span> Healthy</>
+            )}
+            {segBtn(
+              isCardiac,
+              'bg-amber-600 shadow-amber-500/25',
+              () => { setIsCardiac(true); setIsPregnant(false); },
+              <><AlertTriangle className="w-4 h-4" /> Cardiac</>
+            )}
+            {segBtn(
+              isPregnant,
+              'bg-purple-600 shadow-purple-500/25',
+              () => { setIsPregnant(true); setIsCardiac(false); },
+              <><span className="text-lg">♀</span> Pregnant</>
+            )}
           </div>
           {isCardiac && (
             <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
@@ -137,8 +285,84 @@ export default function GlobalSettings({
               Epinephrine limit: 0.04mg (40 mcg)
             </p>
           )}
+          {isPregnant && (
+            <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+              <AlertTriangle className="w-3 h-3" />
+              Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.
+            </p>
+          )}
         </div>
       </div>
+
+      {/* Organ Impairment (Collapsible) */}
+      <details className="mt-4">
+        <summary className={`flex items-center gap-2 text-sm cursor-pointer select-none ${
+          isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-600'
+        }`}>
+          <ShieldAlert className="w-4 h-4" />
+          Clinical Considerations
+          {(hepaticStatus !== 'none' || renalImpairment) && (
+            <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
+              Active
+            </span>
+          )}
+        </summary>
+        <div className={`mt-3 p-3 rounded-xl border space-y-3 ${
+          isDarkMode ? 'bg-or-dark-700/50 border-slate-600/50' : 'bg-slate-50 border-slate-200'
+        }`}>
+          {/* Hepatic Impairment */}
+          <div className="space-y-1">
+            <label className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              Hepatic Function
+            </label>
+            <div className="flex gap-2">
+              {smallToggle(
+                hepaticStatus === 'none',
+                'bg-emerald-600',
+                () => setHepaticStatus('none'),
+                'Normal'
+              )}
+              {smallToggle(
+                hepaticStatus === 'mild',
+                'bg-yellow-600',
+                () => setHepaticStatus('mild'),
+                'Mild'
+              )}
+              {smallToggle(
+                hepaticStatus === 'moderate-severe',
+                'bg-orange-600',
+                () => setHepaticStatus('moderate-severe'),
+                'Mod-Severe'
+              )}
+            </div>
+          </div>
+
+          {/* Renal Impairment */}
+          <div className="space-y-1">
+            <label className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              Renal Impairment
+            </label>
+            <div className="flex gap-2">
+              {smallToggle(
+                !renalImpairment,
+                'bg-emerald-600',
+                () => setRenalImpairment(false),
+                'Normal'
+              )}
+              {smallToggle(
+                renalImpairment,
+                'bg-blue-600',
+                () => setRenalImpairment(true),
+                'Impaired'
+              )}
+            </div>
+          </div>
+
+          <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+            Advisory only — no dose calculation changes. No evidence-based dose reduction percentages exist for dental LA in organ impairment.
+          </p>
+        </div>
+      </details>
     </div>
   );
 }
