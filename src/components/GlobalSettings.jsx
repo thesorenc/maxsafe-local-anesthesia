@@ -141,7 +141,7 @@ export default function GlobalSettings({
   );
 
   return (
-    <div className={`rounded-2xl p-4 mb-4 border transition-colors card-shadow ${
+    <div className={`rounded-2xl p-4 mb-4 border transition-colors card-shadow relative z-20 ${
       isDarkMode
         ? 'bg-or-dark-800/80 border-slate-700/50'
         : 'bg-white border-slate-200'
