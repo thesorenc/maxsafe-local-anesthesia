@@ -280,9 +280,11 @@ export default function GlobalSettings({
 
       {/* Clinical Considerations — collapsed by default, auto-opens when non-normal */}
       <details className="mt-4" open={hepaticStatus !== 'none' || renalImpairment || undefined}>
-        <summary className={`flex items-center gap-2 text-sm cursor-pointer select-none list-none ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-600'}`}>
-          <ShieldAlert className="w-4 h-4" />
-          <span>Clinical Considerations</span>
+        <summary className={`flex items-center gap-2 text-sm cursor-pointer select-none list-none px-3 py-2 rounded-xl transition-colors ${
+          isDarkMode ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/15' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+        }`}>
+          <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+          <span className="font-medium">Clinical Considerations</span>
           <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
             — {hepaticStatus === 'none' ? 'Hepatic: Normal' : hepaticStatus === 'mild' ? 'Hepatic: Mild' : 'Hepatic: Mod-Severe'}
             {' · '}{renalImpairment ? 'Renal: Impaired' : 'Renal: Normal'}
