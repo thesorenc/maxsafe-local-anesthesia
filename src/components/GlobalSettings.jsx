@@ -4,6 +4,8 @@ import { validateWeightForAge, ageToMonths } from '../data/drugConstants';
 
 // Custom age dropdown matching the app's design language
 const AGE_OPTIONS = [
+  { value: '0.5', label: '6 mo' },
+  { value: '0.75', label: '9 mo' },
   ...Array.from({ length: 17 }, (_, i) => ({ value: String(i + 1), label: `${i + 1} yr` })),
   { value: 'adult', label: 'Adult' },
 ];
@@ -244,7 +246,7 @@ export default function GlobalSettings({
                 setPatientType('adult');
               } else {
                 setPatientType('pediatric');
-                setAgeYears(parseInt(val));
+                setAgeYears(parseFloat(val));
               }
             }}
             isDarkMode={isDarkMode}

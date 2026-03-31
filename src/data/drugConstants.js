@@ -154,8 +154,8 @@ export const LOCAL_ANESTHETICS = [
     pediatric: {
       // FDA: no specific age restriction in dental label (but methemoglobinemia risk documented)
       // AAPD: relatively contraindicated in patients susceptible to methemoglobinemia; max 2.5 mg/kg <6yr
-      fda:  { minAgeMonths: 6 },   // Hidden <6mo (universal safety)
-      aapd: { minAgeMonths: 6 },   // Hidden <6mo; dose-capped <6yr in AAPD mode
+      fda:  { minAgeMonths: 12 },  // Restricted <1yr (methemoglobinemia risk in infants)
+      aapd: { minAgeMonths: 12 },  // Restricted <1yr; dose-capped <6yr in AAPD mode
       // AAPD-specific: reduce MRD to 2.5 mg/kg for children <6 years (72 months)
       aapdMethemoglobinemia: {
         maxAgeMonths: 71, // applies to ages <72 months (6 years)
@@ -197,7 +197,7 @@ export function getDrugRestrictionReason(drug, ageMonths) {
   const years = Math.round(minAge / 12);
   if (drug.id === 'articaine-4-epi-100k') return `Not recommended under ${years} years (FDA)`;
   if (drug.id === 'bupivacaine-05-epi-200k') return `Not recommended under ${years} years (FDA + AAPD)`;
-  if (drug.id === 'prilocaine-4-plain') return 'Methemoglobinemia risk in infants';
+  if (drug.id === 'prilocaine-4-plain') return 'Methemoglobinemia risk — not recommended under 1 year';
   return `Not recommended under ${years} years`;
 }
 
