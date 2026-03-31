@@ -144,11 +144,6 @@ export default function GlobalSettings({
               </button>
             </div>
           </div>
-          {weight > 0 && (
-            <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-              = {weightInKg.toFixed(1)} kg
-            </p>
-          )}
           {weightWarning && (
             <p className={`text-xs flex items-start gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
               <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
@@ -210,42 +205,30 @@ export default function GlobalSettings({
         </div>
       </div>
 
-      {/* Patient Status */}
+      {/* Patient Status — Cardiac and Pregnant are independent toggles */}
       <div className="mt-4 space-y-2">
         <label className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
           <Heart className="w-4 h-4" />
           Patient Status
         </label>
-        <div className="grid grid-cols-3 gap-2">
-          {segBtn(
-            !isCardiac && !isPregnant,
-            'bg-emerald-600 shadow-emerald-500/25',
-            () => { setIsCardiac(false); setIsPregnant(false); },
-            <><span className="text-lg">✓</span> Healthy</>
-          )}
+        <div className="flex gap-2">
           {segBtn(
             isCardiac,
             'bg-amber-600 shadow-amber-500/25',
-            () => { setIsCardiac(true); setIsPregnant(false); },
+            () => setIsCardiac(!isCardiac),
             <><AlertTriangle className="w-4 h-4" /> Cardiac</>
           )}
           {segBtn(
             isPregnant,
             'bg-purple-600 shadow-purple-500/25',
-            () => { setIsPregnant(true); setIsCardiac(false); },
+            () => setIsPregnant(!isPregnant),
             <><span className="text-lg">♀</span> Pregnant</>
           )}
         </div>
-        {isCardiac && (
+        {(isCardiac || isPregnant) && (
           <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
             <AlertTriangle className="w-3 h-3" />
-            Epinephrine limit: 0.04mg (40 mcg)
-          </p>
-        )}
-        {isPregnant && (
-          <p className={`text-xs flex items-center gap-1 ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-            <AlertTriangle className="w-3 h-3" />
-            Epi limit: 0.04mg. Prefer lidocaine. Avoid prilocaine.
+            Epi limit: 0.04mg (40 mcg){isPregnant ? '. Prefer lidocaine. Avoid prilocaine.' : ''}
           </p>
         )}
       </div>
@@ -261,59 +244,60 @@ export default function GlobalSettings({
             </span>
           )}
         </label>
-        <div className={`p-3 rounded-xl border space-y-3 ${
+        <div className={`p-3 rounded-xl border ${
           isDarkMode ? 'bg-or-dark-700/50 border-slate-600/50' : 'bg-slate-50 border-slate-200'
         }`}>
-          {/* Hepatic Impairment */}
-          <div className="space-y-1">
-            <label className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-              Hepatic Function
-            </label>
-            <div className="flex gap-2">
-              {smallToggle(
-                hepaticStatus === 'none',
-                'bg-emerald-600',
-                () => setHepaticStatus('none'),
-                'Normal'
-              )}
-              {smallToggle(
-                hepaticStatus === 'mild',
-                'bg-yellow-600',
-                () => setHepaticStatus('mild'),
-                'Mild'
-              )}
-              {smallToggle(
-                hepaticStatus === 'moderate-severe',
-                'bg-orange-600',
-                () => setHepaticStatus('moderate-severe'),
-                'Mod-Severe'
-              )}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Hepatic Impairment */}
+            <div className="space-y-1">
+              <label className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                Hepatic
+              </label>
+              <div className="flex flex-col gap-1.5">
+                {smallToggle(
+                  hepaticStatus === 'none',
+                  'bg-emerald-600',
+                  () => setHepaticStatus('none'),
+                  'Normal'
+                )}
+                {smallToggle(
+                  hepaticStatus === 'mild',
+                  'bg-yellow-600',
+                  () => setHepaticStatus('mild'),
+                  'Mild'
+                )}
+                {smallToggle(
+                  hepaticStatus === 'moderate-severe',
+                  'bg-orange-600',
+                  () => setHepaticStatus('moderate-severe'),
+                  'Mod-Severe'
+                )}
+              </div>
+            </div>
+
+            {/* Renal Impairment */}
+            <div className="space-y-1">
+              <label className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                Renal
+              </label>
+              <div className="flex flex-col gap-1.5">
+                {smallToggle(
+                  !renalImpairment,
+                  'bg-emerald-600',
+                  () => setRenalImpairment(false),
+                  'Normal'
+                )}
+                {smallToggle(
+                  renalImpairment,
+                  'bg-blue-600',
+                  () => setRenalImpairment(true),
+                  'Impaired'
+                )}
+              </div>
             </div>
           </div>
-
-          {/* Renal Impairment */}
-          <div className="space-y-1">
-            <label className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-              Renal Impairment
-            </label>
-            <div className="flex gap-2">
-              {smallToggle(
-                !renalImpairment,
-                'bg-emerald-600',
-                () => setRenalImpairment(false),
-                'Normal'
-              )}
-              {smallToggle(
-                renalImpairment,
-                'bg-blue-600',
-                () => setRenalImpairment(true),
-                'Impaired'
-              )}
-            </div>
-          </div>
-
-          <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-            Advisory only — no dose calculation changes. No evidence-based dose reduction percentages exist for dental LA in organ impairment.
+          <p className={`text-xs mt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+            Advisory only — no dose modifications.
           </p>
         </div>
       </div>
