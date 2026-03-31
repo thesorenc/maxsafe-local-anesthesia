@@ -204,7 +204,7 @@ export default function LocalAnesthesiaCalculator({
       <div key={`${drug.id}-${epiRatio}`} className="flex items-center gap-2">
         {/* Concentration label + remove button */}
         <div className={`w-24 flex-shrink-0 text-xs font-medium flex items-center gap-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-          {!isDefault && !isPlain && (
+          {!isPlain && (
             <button
               onClick={() => removeConcentration(drug.id, epiRatio)}
               className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
@@ -377,7 +377,7 @@ export default function LocalAnesthesiaCalculator({
           const unusedConcentrations = hasMultiConcentration
             ? drug.availableEpiRatios.filter(r => !concentrationRows.includes(r))
             : [];
-          const showAddConc = hasMultiConcentration && unusedConcentrations.length > 0 && totalCount > 0;
+          const showAddConc = hasMultiConcentration && unusedConcentrations.length > 0;
 
           // Left border color based on dose level
           const borderLeftColor = totalCount > 0
