@@ -67,7 +67,7 @@ function App() {
     <div className={`min-h-screen transition-colors duration-200 ${
       isDarkMode
         ? 'bg-or-dark-900 text-slate-100'
-        : 'bg-slate-100 text-slate-900'
+        : 'text-slate-900'
     }`}>
       {/* Header */}
       <header className={`sticky top-0 z-50 backdrop-blur-sm border-b transition-colors duration-200 ${
@@ -127,6 +127,7 @@ function App() {
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-4">
         {/* Global Settings */}
+        <div className="animate-enter animate-enter-1">
         <GlobalSettings
           weight={weight}
           setWeight={setWeight}
@@ -148,9 +149,10 @@ function App() {
           setRenalImpairment={setRenalImpairment}
           isDarkMode={isDarkMode}
         />
+        </div>
 
         {/* Calculator */}
-        <div className="mt-4">
+        <div className="mt-4 animate-enter animate-enter-2">
           <LocalAnesthesiaCalculator
             weightKg={weightKg}
             isCardiac={isCardiac}

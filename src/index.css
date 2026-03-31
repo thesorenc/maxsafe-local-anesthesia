@@ -11,6 +11,15 @@
     @apply antialiased font-display;
   }
 
+  /* Light mode: warm tint instead of cold gray */
+  body {
+    background-color: #f8f7f5;
+  }
+
+  .dark body {
+    background-color: #0a0a0f;
+  }
+
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -35,18 +44,26 @@
   background-size: 256px 256px;
 }
 
+/* Light mode: subtle top atmosphere gradient */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(59, 130, 246, 0.03), transparent);
+}
+
+.dark body::after {
+  display: none;
+}
+
 body > #root {
   position: relative;
   z-index: 1;
-}
-
-/* Radial gauge animations */
-.gauge-track {
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.gauge-glow {
-  transition: opacity 0.4s ease, filter 0.4s ease;
 }
 
 /* Button press feedback */
@@ -56,6 +73,45 @@ body > #root {
 
 .btn-press:active {
   transform: scale(0.95);
+}
+
+/* Staggered entrance animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-enter {
+  animation: fadeInUp 0.3s ease-out both;
+}
+
+.animate-enter-1 { animation-delay: 0ms; }
+.animate-enter-2 { animation-delay: 50ms; }
+.animate-enter-3 { animation-delay: 100ms; }
+.animate-enter-4 { animation-delay: 150ms; }
+.animate-enter-5 { animation-delay: 200ms; }
+
+/* Light mode card shadow for depth */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.dark .card-shadow {
+  box-shadow: none;
+}
+
+/* Details/summary: hide default marker */
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
 }
 
 @layer utilities {
@@ -74,33 +130,10 @@ body > #root {
 }
 
 /* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #1a1a25;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #3f3f5a;
-  border-radius: 3px;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #52527a;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+.dark ::-webkit-scrollbar-track { background: #1a1a25; }
+.dark ::-webkit-scrollbar-thumb { background: #3f3f5a; border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #52527a; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

@@ -141,7 +141,7 @@ export default function GlobalSettings({
   );
 
   return (
-    <div className={`rounded-2xl p-4 mb-4 border transition-colors ${
+    <div className={`rounded-2xl p-4 mb-4 border transition-colors card-shadow ${
       isDarkMode
         ? 'bg-or-dark-800/80 border-slate-700/50'
         : 'bg-white border-slate-200'
@@ -278,18 +278,17 @@ export default function GlobalSettings({
         )}
       </div>
 
-      {/* Clinical Considerations — always visible */}
-      <div className="mt-4">
-        <label className={`flex items-center gap-2 text-sm mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+      {/* Clinical Considerations — collapsed by default, auto-opens when non-normal */}
+      <details className="mt-4" open={hepaticStatus !== 'none' || renalImpairment || undefined}>
+        <summary className={`flex items-center gap-2 text-sm cursor-pointer select-none list-none ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-600'}`}>
           <ShieldAlert className="w-4 h-4" />
-          Clinical Considerations
-          {(hepaticStatus !== 'none' || renalImpairment) && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
-              Active
-            </span>
-          )}
-        </label>
-        <div className={`p-3 rounded-xl border ${
+          <span>Clinical Considerations</span>
+          <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+            — {hepaticStatus === 'none' ? 'Hepatic: Normal' : hepaticStatus === 'mild' ? 'Hepatic: Mild' : 'Hepatic: Mod-Severe'}
+            {' · '}{renalImpairment ? 'Renal: Impaired' : 'Renal: Normal'}
+          </span>
+        </summary>
+        <div className={`mt-2 p-3 rounded-xl border ${
           isDarkMode ? 'bg-or-dark-700/50 border-slate-600/50' : 'bg-slate-50 border-slate-200'
         }`}>
           <div className="grid grid-cols-2 gap-3">
@@ -345,7 +344,7 @@ export default function GlobalSettings({
             Advisory only — no dose modifications.
           </p>
         </div>
-      </div>
+      </details>
     </div>
   );
 }
