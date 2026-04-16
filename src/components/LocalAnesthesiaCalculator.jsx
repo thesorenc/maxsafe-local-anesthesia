@@ -266,7 +266,7 @@ export default function LocalAnesthesiaCalculator({
           percentage={calculations.epiFraction}
           label="Epinephrine Load"
           sublabel={`Limit: ${calculations.epiLimit.toFixed(3)}mg${
-            isPediatric ? ' (1 mcg/kg)' : (isCardiac || isPregnant) ? ' (Reduced)' : ' (Healthy)'
+            (isCardiac || isPregnant) ? ' (Reduced)' : ' (Healthy)'
           }`}
           detail={`${calculations.totalEpi.toFixed(3)}mg (${(calculations.totalEpi * 1000).toFixed(0)} mcg)`}
           isDarkMode={isDarkMode}

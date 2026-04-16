@@ -168,10 +168,9 @@ export const LOCAL_ANESTHETICS = [
 
 // Epinephrine limits
 export const EPINEPHRINE_LIMITS = {
-  healthy: 0.2,           // mg (200 mcg) — adult healthy
-  cardiac: 0.04,          // mg (40 mcg) — adult cardiac/compromised
+  healthy: 0.2,           // mg (200 mcg) — healthy (all ages)
+  cardiac: 0.04,          // mg (40 mcg) — cardiac/compromised (all ages)
   pregnant: 0.04,         // mg (40 mcg) — pregnant (same as cardiac)
-  pediatricPerKg: 0.001,  // mg/kg (1 mcg/kg) — pediatric weight-based
 };
 
 // --- Helper functions ---
@@ -229,14 +228,6 @@ export function getEffectiveMrd(drug, patientType, mrdStandard, ageMonths) {
  * Compute the epinephrine limit for the current patient context.
  */
 export function getEpiLimit(patientType, isCardiac, isPregnant, weightKg) {
-  if (patientType === 'pediatric') {
-    const weightBased = weightKg * EPINEPHRINE_LIMITS.pediatricPerKg;
-    if (isCardiac) {
-      return Math.min(weightBased, EPINEPHRINE_LIMITS.cardiac);
-    }
-    return weightBased;
-  }
-
   if (isCardiac) return EPINEPHRINE_LIMITS.cardiac;
   if (isPregnant) return EPINEPHRINE_LIMITS.pregnant;
   return EPINEPHRINE_LIMITS.healthy;
