@@ -1,3 +1,13 @@
 node_modules
 dist
 .DS_Store
+
+# Saved attachments / screen recordings (not part of the app)
+att.*
+*.mp4
+*.MP4
+*.mov
+*.MOV
+
+# Local tooling artifacts
+.playwright-mcp/
