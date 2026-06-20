@@ -473,11 +473,10 @@ export default function LocalAnesthesiaCalculator({
                   <div className="flex items-center justify-between font-medium gap-2">
                     <span className="flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                      Methemoglobinemia limit
+                      Methemoglobinemia risk
                     </span>
                     <span className="font-mono whitespace-nowrap">{totalMg.toFixed(0)} / {metHbCap.toFixed(0)} mg · {metHbPercent.toFixed(0)}%</span>
                   </div>
-                  <p className="mt-1 opacity-90">{drug.methemoglobinemia.warning}</p>
                 </div>
               )}
 
