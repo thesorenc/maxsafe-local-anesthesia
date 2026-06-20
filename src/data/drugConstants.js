@@ -135,8 +135,11 @@ export const LOCAL_ANESTHETICS = [
     name: 'Prilocaine 4%',
     epiRatio: 'Plain',
     concentration: 40,
-    maxDosePerKg: 6, // Conservative per UpToDate (FDA label: 8 mg/kg)
-    absoluteMax: 400, // Conservative per UpToDate (FDA label: 600 mg)
+    // Systemic LAST ceiling (FDA Citanest label: 8 mg/kg, max 600 mg) — the value used in the
+    // additive LA-toxicity sum. Methemoglobinemia is a SEPARATE, prilocaine-specific axis (see
+    // `methemoglobinemia` below) and is intentionally NOT folded into this systemic ceiling.
+    maxDosePerKg: 8,
+    absoluteMax: 600,
     epiConcentration: 0,
     carpuleSize: 1.8,
     color: 'cyan',
@@ -144,24 +147,35 @@ export const LOCAL_ANESTHETICS = [
     onset: '2-3 min',
     duration: '20 min - 2.5 hrs',
     halfLife: '1.6 hrs',
+    // SYSTEMIC (LAST) ceilings only — methemoglobinemia is handled separately (see below) and is
+    // never folded in here. FDA systemic label = 8 mg/kg / 600 mg, applied across ages (min(mg/kg*wt,
+    // cap) naturally lowers the absolute limit in small children, so no child>adult inversion). AAPD
+    // publishes no prilocaine dose, so the conservative mode uses Malamed's plain-prilocaine 6 mg/kg
+    // with the systemic 600 mg cap (NOT the 400 mg methemoglobinemia cap).
     mrd: {
-      adult:   { maxDosePerKg: 6.0, absoluteMax: 400 },
-      pedAAPD: { maxDosePerKg: 6.0, absoluteMax: 400 },
+      adult:   { maxDosePerKg: 8.0, absoluteMax: 600 },
+      pedAAPD: { maxDosePerKg: 6.0, absoluteMax: 600 },
       pedFDA:  { maxDosePerKg: 8.0, absoluteMax: 600 },
     },
     availableEpiRatios: [],
     defaultEpiRatio: null,
+    // Methemoglobinemia: a SEPARATE toxicity axis, specific to prilocaine (o-toluidine metabolite).
+    // NOT additive with other amides' systemic LAST, so it is tracked independently of the dose sum
+    // and applied in ALL modes (not tied to the FDA/AAPD toggle). Cap: Citanest Plain monograph
+    // "no more than 400 mg per procedure" (cyanosis reported >400 mg); stricter 2.5 mg/kg in
+    // children <6 yr (Guay 2009 / conservative pediatric practice). See getMethemoglobinemiaCap().
+    methemoglobinemia: {
+      absoluteCapMg: 400,
+      childMaxDosePerKg: 2.5,
+      childMaxAgeMonths: 72, // <6 years
+      warning: 'Methemoglobinemia risk (o-toluidine metabolite). Monitor for cyanosis or low SpO₂ unresponsive to oxygen; keep methylene blue available. Avoid in congenital methemoglobinemia or G6PD deficiency.',
+    },
     pediatric: {
-      // FDA: no specific age restriction in dental label (but methemoglobinemia risk documented)
-      // AAPD: relatively contraindicated in patients susceptible to methemoglobinemia; max 2.5 mg/kg <6yr
+      // FDA dental label: no specific age cutoff, but methemoglobinemia risk is documented.
+      // AAPD: prilocaine is relatively contraindicated in metHb-susceptible patients (G6PD
+      //   deficiency, anemia, very young); AAPD does NOT publish a prilocaine mg/kg dose.
       fda:  { minAgeMonths: 12 },  // Restricted <1yr (methemoglobinemia risk in infants)
-      aapd: { minAgeMonths: 12 },  // Restricted <1yr; dose-capped <6yr in AAPD mode
-      // AAPD-specific: reduce MRD to 2.5 mg/kg for children <6 years (72 months)
-      aapdMethemoglobinemia: {
-        maxAgeMonths: 71, // applies to ages <72 months (6 years)
-        maxDosePerKg: 2.5,
-        warning: 'Methemoglobinemia risk — max 2.5 mg/kg for children <6 years. Monitor SpO₂.',
-      },
+      aapd: { minAgeMonths: 12 },  // Restricted <1yr
     }
   }
 ];
@@ -204,24 +218,30 @@ export function getDrugRestrictionReason(drug, ageMonths) {
  * Get the effective MRD (maxDosePerKg and absoluteMax) for a drug
  * given the patient context.
  */
-export function getEffectiveMrd(drug, patientType, mrdStandard, ageMonths) {
+export function getEffectiveMrd(drug, patientType, mrdStandard) {
+  // SYSTEMIC LAST ceiling only. Methemoglobinemia is a separate, prilocaine-specific axis
+  // (see getMethemoglobinemiaCap) and is deliberately NOT applied to this systemic denominator.
   if (patientType === 'adult') {
     return drug.mrd.adult;
   }
-
-  // Pediatric mode
   const key = mrdStandard === 'aapd' ? 'pedAAPD' : 'pedFDA';
-  let mrd = drug.mrd[key];
+  return drug.mrd[key];
+}
 
-  // AAPD-specific: prilocaine methemoglobinemia dose cap for <6yr
-  if (mrdStandard === 'aapd' && drug.pediatric.aapdMethemoglobinemia) {
-    const rule = drug.pediatric.aapdMethemoglobinemia;
-    if (ageMonths <= rule.maxAgeMonths) {
-      mrd = { maxDosePerKg: rule.maxDosePerKg, absoluteMax: mrd.absoluteMax };
-    }
+/**
+ * Methemoglobinemia dose cap (mg) for a drug, or null if the drug carries no metHb risk.
+ * This is a SEPARATE axis from the additive LAST sum and is applied in ALL modes (independent
+ * of the FDA/AAPD toggle). Among this app's injectables, only prilocaine has a metHb descriptor.
+ */
+export function getMethemoglobinemiaCap(drug, weightKg, ageMonths) {
+  const m = drug.methemoglobinemia;
+  if (!m) return null;
+  let cap = m.absoluteCapMg;
+  // Stricter weight-based cap in young children (e.g., 2.5 mg/kg <6 yr).
+  if (weightKg > 0 && ageMonths != null && ageMonths < m.childMaxAgeMonths) {
+    cap = Math.min(cap, m.childMaxDosePerKg * weightKg);
   }
-
-  return mrd;
+  return cap;
 }
 
 /**
@@ -250,13 +270,8 @@ export function getDrugWarnings(drug, ageMonths, mrdStandard) {
     warnings.push(drug.pediatric.warnings.infantWarning);
   }
 
-  // AAPD methemoglobinemia warning (prilocaine <6yr)
-  if (mrdStandard === 'aapd' && drug.pediatric.aapdMethemoglobinemia) {
-    const rule = drug.pediatric.aapdMethemoglobinemia;
-    if (ageMonths <= rule.maxAgeMonths) {
-      warnings.push(rule.warning);
-    }
-  }
+  // Methemoglobinemia is handled as a separate prilocaine-specific axis (getMethemoglobinemiaCap),
+  // surfaced on the drug card in all modes — intentionally not part of these pediatric warnings.
 
   return warnings;
 }

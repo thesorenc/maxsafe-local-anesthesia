@@ -17,12 +17,14 @@ export default function VerificationBanner({
   mrdStandard,
   epiLimit,
   drugSummary,
+  metHb,
   isDarkMode
 }) {
-  const isOverLimit = toxicityPercent > 100 || epiPercent > 100;
+  const metHbPct = metHb?.percent || 0;
+  const isOverLimit = toxicityPercent > 100 || epiPercent > 100 || metHbPct > 100;
 
-  // Don't render if below threshold
-  if (toxicityPercent <= 80 && epiPercent <= 80) return null;
+  // Don't render if below threshold (systemic LAST, epinephrine, or methemoglobinemia)
+  if (toxicityPercent <= 80 && epiPercent <= 80 && metHbPct <= 80) return null;
 
   const isPed = patientType === 'pediatric';
 
@@ -86,11 +88,19 @@ export default function VerificationBanner({
             <div className={`border-t pt-1 mt-1 flex justify-between font-semibold ${
               isDarkMode ? 'border-slate-700' : 'border-slate-200'
             }`}>
-              <span>Combined fractional toxicity</span>
-              <span className={isOverLimit ? 'text-red-500' : 'text-amber-500'}>
+              <span>Combined fractional toxicity (systemic LAST)</span>
+              <span className={toxicityPercent > 100 ? 'text-red-500' : toxicityPercent > 80 ? 'text-amber-500' : isDarkMode ? 'text-slate-300' : 'text-slate-600'}>
                 {toxicityPercent.toFixed(1)}%
               </span>
             </div>
+            {metHbPct > 0 && (
+              <div className="flex justify-between font-semibold">
+                <span>Methemoglobinemia{metHb.drugName ? ` (${metHb.drugName})` : ''}</span>
+                <span className={`font-mono ${metHbPct > 100 ? 'text-red-500' : metHbPct > 80 ? 'text-amber-500' : isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {metHb.mg.toFixed(0)} / {metHb.cap.toFixed(0)} mg ({metHbPct.toFixed(0)}%)
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -6,6 +6,7 @@ import {
   isDrugAvailable,
   getDrugRestrictionReason,
   getEffectiveMrd,
+  getMethemoglobinemiaCap,
   getEpiLimit,
   getDrugWarnings,
 } from '../data/drugConstants';
@@ -123,7 +124,7 @@ export default function LocalAnesthesiaCalculator({
     const epiLimit = getEpiLimit(patientType, isCardiac, isPregnant, weightKg);
 
     if (!weightKg || weightKg <= 0 || addedDrugs.length === 0) {
-      return { totalFraction: 0, totalEpi: 0, epiFraction: 0, epiLimit, byDrug: [], activeDrugCount: 0 };
+      return { totalFraction: 0, totalEpi: 0, epiFraction: 0, epiLimit, byDrug: [], metHb: { percent: 0, mg: 0, cap: 0, drugName: null }, activeDrugCount: 0 };
     }
 
     // Group by base drug for fractional toxicity
@@ -139,14 +140,23 @@ export default function LocalAnesthesiaCalculator({
     });
 
     let totalFraction = 0;
+    let metHb = { percent: 0, mg: 0, cap: 0, drugName: null };
     const byDrug = [];
 
     Object.values(drugTotals).forEach(dt => {
       const drug = LOCAL_ANESTHETICS.find(d => d.id === dt.drugId);
-      const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageMonths);
+      const mrd = getEffectiveMrd(drug, patientType, mrdStandard);
       const effectiveMax = Math.min(mrd.maxDosePerKg * weightKg, mrd.absoluteMax);
       const fraction = effectiveMax > 0 ? dt.mgDelivered / effectiveMax : 0;
       totalFraction += fraction;
+
+      // Methemoglobinemia — a separate, prilocaine-specific axis (NOT summed into LAST).
+      const metHbCap = getMethemoglobinemiaCap(drug, weightKg, ageMonths);
+      if (metHbCap && metHbCap > 0) {
+        const pct = (dt.mgDelivered / metHbCap) * 100;
+        if (pct > metHb.percent) metHb = { percent: pct, mg: dt.mgDelivered, cap: metHbCap, drugName: dt.drugName };
+      }
+
       byDrug.push({
         drugName: dt.drugName,
         totalMg: dt.mgDelivered.toFixed(1),
@@ -164,6 +174,7 @@ export default function LocalAnesthesiaCalculator({
       epiFraction,
       epiLimit,
       byDrug,
+      metHb,
       activeDrugCount: Object.keys(drugTotals).length
     };
   }, [addedDrugs, weightKg, isCardiac, isPregnant, patientType, mrdStandard, ageMonths]);
@@ -180,8 +191,9 @@ export default function LocalAnesthesiaCalculator({
     return colors[color] || colors.blue;
   };
 
-  const summaryColor = calculations.totalFraction > 80 || calculations.epiFraction > 80
-    ? 'red' : calculations.totalFraction > 50 || calculations.epiFraction > 50
+  const metHbPct = calculations.metHb?.percent || 0;
+  const summaryColor = calculations.totalFraction > 80 || calculations.epiFraction > 80 || metHbPct > 100
+    ? 'red' : calculations.totalFraction > 50 || calculations.epiFraction > 50 || metHbPct > 80
     ? 'amber' : 'emerald';
 
   // Render a single concentration row with +/- buttons
@@ -286,6 +298,10 @@ export default function LocalAnesthesiaCalculator({
           <span className="font-mono">{calculations.totalFraction.toFixed(1)}%</span> toxicity
           {' · '}
           <span className="font-mono">{(calculations.totalEpi * 1000).toFixed(0)}</span> mcg epi (<span className="font-mono">{calculations.epiFraction.toFixed(0)}%</span>)
+          {metHbPct > 0 && <>
+            {' · '}
+            <span className="font-mono">{metHbPct.toFixed(0)}%</span> metHb
+          </>}
           {addedDrugs.length > 0 && <>
             {' · '}
             {calculations.activeDrugCount} drug{calculations.activeDrugCount !== 1 ? 's' : ''}
@@ -347,6 +363,7 @@ export default function LocalAnesthesiaCalculator({
           mgDelivered: parseFloat(d.totalMg),
           percentOfMax: parseFloat(d.fraction)
         }))}
+        metHb={calculations.metHb}
         isDarkMode={isDarkMode}
       />
 
@@ -356,10 +373,13 @@ export default function LocalAnesthesiaCalculator({
           const colors = getDrugColors(drug.color);
           const drugEntry = drugCarpules[drug.id] || {};
           const totalCount = getTotalCarpules(drugEntry);
-          const mrd = getEffectiveMrd(drug, patientType, mrdStandard, ageMonths);
+          const mrd = getEffectiveMrd(drug, patientType, mrdStandard);
           const maxDose = weightKg > 0 ? Math.min(mrd.maxDosePerKg * weightKg, mrd.absoluteMax) : mrd.absoluteMax;
           const totalMg = Object.entries(drugEntry).reduce((sum, [, count]) => sum + count * drug.carpuleSize * drug.concentration, 0);
           const percentUsed = weightKg > 0 && totalCount > 0 ? (totalMg / maxDose) * 100 : 0;
+          // Methemoglobinemia — separate prilocaine-specific axis, surfaced on the card in all modes.
+          const metHbCap = getMethemoglobinemiaCap(drug, weightKg, ageMonths);
+          const metHbPercent = metHbCap && totalMg > 0 ? (totalMg / metHbCap) * 100 : 0;
           const warnings = isPediatric ? getDrugWarnings(drug, ageMonths, mrdStandard) : [];
           const isDisabledByPregnancy = isPregnant && drug.id === 'prilocaine-4-plain';
           const ageRestriction = isPediatric ? getDrugRestrictionReason(drug, ageMonths) : null;
@@ -376,9 +396,10 @@ export default function LocalAnesthesiaCalculator({
             : [];
           const showAddConc = hasMultiConcentration && unusedConcentrations.length > 0;
 
-          // Left border color based on dose level
+          // Left border color based on the worse of the systemic-LAST and methemoglobinemia axes
+          const severity = Math.max(percentUsed, metHbPercent);
           const borderLeftColor = totalCount > 0
-            ? percentUsed > 100 ? '#ef4444' : percentUsed > 80 ? '#f59e0b' : '#10b981'
+            ? severity > 100 ? '#ef4444' : severity > 80 ? '#f59e0b' : '#10b981'
             : isDarkMode ? 'rgba(100,116,139,0.2)' : 'rgba(203,213,225,0.5)';
 
           return (
@@ -437,6 +458,26 @@ export default function LocalAnesthesiaCalculator({
                 }`}>
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                   <div>{warnings.map((w, i) => <p key={i}>{w}</p>)}</div>
+                </div>
+              )}
+
+              {/* Methemoglobinemia — separate prilocaine-specific axis (not part of the LAST sum) */}
+              {drug.methemoglobinemia && totalCount > 0 && weightKg > 0 && (
+                <div className={`mb-2 p-2 rounded-lg text-xs ${
+                  metHbPercent > 100
+                    ? isDarkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-700'
+                    : metHbPercent > 80
+                    ? isDarkMode ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'
+                    : isDarkMode ? 'bg-cyan-500/10 text-cyan-300' : 'bg-cyan-50 text-cyan-700'
+                }`}>
+                  <div className="flex items-center justify-between font-medium gap-2">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                      Methemoglobinemia limit
+                    </span>
+                    <span className="font-mono whitespace-nowrap">{totalMg.toFixed(0)} / {metHbCap.toFixed(0)} mg · {metHbPercent.toFixed(0)}%</span>
+                  </div>
+                  <p className="mt-1 opacity-90">{drug.methemoglobinemia.warning}</p>
                 </div>
               )}
 
